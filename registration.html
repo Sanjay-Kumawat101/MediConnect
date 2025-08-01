@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MediConnect Registration</title>
+  <link rel="stylesheet" href="registration-style.css">
+  <link rel="script" href="registration-script.js">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 id="formTitle">Join MediConnect</h2>
+      <p id="formSubtitle">Connect with healthcare professionals and patients</p>
+    </div>
+    
+    <div class="form-content">
+      <div class="auth-toggle">
+        <button type="button" id="registerTab" class="auth-tab active">Register</button>
+        <button type="button" id="loginTab" class="auth-tab">Login</button>
+      </div>
+      
+      <div class="success-message" id="successMessage">
+        Welcome to MediConnect!
+      </div>
+      
+      
+      <!-- Registration Form -->
+      <form id="registrationForm" action="/submit_registration" method="POST" style="display: block;">
+        
+        <div class="form-group">
+          <label>Register As</label>
+          <div class="role-selector">
+            <div class="role-option">
+              <input type="radio" id="patient" name="role" value="patient" required>
+              <label for="patient" class="role-card">
+                <span class="role-icon">🏥</span>
+                <div>Patient</div>
+              </label>
+            </div>
+            <div class="role-option">
+              <input type="radio" id="doctor" name="role" value="doctor" required>
+              <label for="doctor" class="role-card">
+                <span class="role-icon">👨‍⚕️</span>
+                <div>Doctor</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input type="text" id="fullname" name="fullname" required>
+          <div class="error-message" id="fullnameError">Please enter your full name</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+            <div class="error-message" id="emailError">Please enter a valid email</div>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required>
+            <div class="error-message" id="phoneError">Please enter a valid phone number</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required>
+            <div class="error-message" id="dobError">Please select your date of birth</div>
+          </div>
+        </div>
+
+        <div id="doctorFields" class="doctor-fields">
+          <div class="form-group">
+            <label for="specialization">Medical Specialization</label>
+            <input type="text" id="specialization" name="specialization" placeholder="e.g., Cardiology, Pediatrics">
+          </div>
+          <div class="form-group">
+            <label for="license">Medical License Number</label>
+            <input type="text" id="license" name="license" placeholder="Enter your medical license number">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Create Password</label>
+          <input type="password" id="password" name="password" required>
+          <div class="password-strength" id="passwordStrength">
+            <div class="password-strength-bar"></div>
+          </div>
+          <div class="error-message" id="passwordError">Password must be at least 8 characters</div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Create Account
+        </button>
+      </form>
+
+      <!-- Login Form -->
+      <form id="loginForm" action="/submit_login" method="POST" style="display: none;">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" name="email" required>
+          <div class="error-message" id="loginEmailError">Please enter a valid email</div>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" name="password" required>
+          <div class="error-message" id="loginPasswordError">Please enter your password</div>
+        </div>
+
+        <div class="form-group">
+          <div class="forgot-password">
+            <a href="#" id="forgotPasswordLink">Forgot your password?</a>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="loginBtn">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
