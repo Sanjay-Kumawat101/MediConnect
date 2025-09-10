@@ -111,9 +111,21 @@
     });
 
     document.getElementById('phone').addEventListener('blur', function() {
-      validateField(this, document.getElementById('phoneError'), 
-        value => /^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, '')));
-    });
+  validateField(
+    this,
+    document.getElementById('phoneError'),
+    value => {
+      const cleaned = value.replace(/\D/g, ''); // Remove all non-digit characters
+      return (
+        /^(\+91)?[6-9]\d{9}$/.test(value) || // Accept +91 format
+        /^0[6-9]\d{9}$/.test(value) ||       // Accept leading 0 format
+        /^[6-9]\d{9}$/.test(value)           // Accept plain 10-digit format
+      );
+    }
+  );
+});
+
+
 
     document.getElementById('dob').addEventListener('blur', function() {
       validateField(this, document.getElementById('dobError'), 
@@ -121,7 +133,7 @@
           const today = new Date();
           const birthDate = new Date(value);
           const age = today.getFullYear() - birthDate.getFullYear();
-          return age >= 13 && age <= 120;
+          return age >= 0 && age <= 120;
         });
     });
 
@@ -187,16 +199,22 @@
       }, 1500);
     });
 
-    // Auto-format phone number
-    document.getElementById('phone').addEventListener('input', function() {
-      let value = this.value.replace(/\D/g, '');
-      if (value.length >= 6) {
-        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-      } else if (value.length >= 3) {
-        value = value.replace(/(\d{3})(\d{3})/, '($1) $2');
-      }
-      this.value = value;
-    });
+document.getElementById('phone').addEventListener('blur', function() {
+  validateField(
+    this,
+    document.getElementById('phoneError'),
+    value => {
+      const cleaned = value.replace(/\D/g, ''); // Remove non-digit characters
+      return (
+        /^(\+91)?[6-9]\d{9}$/.test(cleaned) || // +91 format
+        /^0[6-9]\d{9}$/.test(cleaned) ||       // 0 format
+        /^[6-9]\d{9}$/.test(cleaned)           // plain 10-digit format
+      );
+    }
+  );
+});
+
+
 
     // Forgot password functionality
     document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
