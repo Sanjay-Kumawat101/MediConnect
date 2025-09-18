@@ -156,6 +156,22 @@
     // Registration form submission
     registrationForm.addEventListener('submit', function(e) {
       e.preventDefault();
+
+      // Get form data
+  const formData = new FormData(this);
+  const userData = {
+    name: formData.get('fullname'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    role: formData.get('role'),
+    gender: formData.get('gender'),
+    dob: formData.get('dob'),
+    specialization: formData.get('specialization'),
+    license: formData.get('license')
+  };
+  
+  // Store user data
+  localStorage.setItem('currentUser', JSON.stringify(userData));
       
       // Simulate loading state
       submitBtn.classList.add('loading');
@@ -165,13 +181,10 @@
       setTimeout(() => {
         successMessage.style.display = 'block';
         successMessage.textContent = 'Registration successful! Redirecting to dashboard...';
-        submitBtn.classList.remove('loading');
-        submitBtn.textContent = 'Account Created!';
-        submitBtn.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
         
         // Simulate redirect to dashboard
         setTimeout(() => {
-          window.location.href = '#dashboard'; // In real app, this would redirect to dashboard
+          window.location.href = 'dashboard.html'; 
         }, 1500);
       }, 1500);
     });
@@ -188,13 +201,10 @@
       setTimeout(() => {
         successMessage.style.display = 'block';
         successMessage.textContent = 'Login successful! Welcome back to MediConnect.';
-        loginBtn.classList.remove('loading');
-        loginBtn.textContent = 'Signed In!';
-        loginBtn.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
         
         // Simulate redirect to dashboard
         setTimeout(() => {
-          window.location.href = '#dashboard'; // In real app, this would redirect to dashboard
+          window.location.href = 'dashboard.html'; 
         }, 1500);
       }, 1500);
     });
