@@ -32,45 +32,45 @@
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo">
-          <div class="logo-icon">🏥</div>
+          <img src="mediconnect-logo.svg" alt="MediConnect" class="logo-image">
           <span>MediConnect</span>
         </div>
         <div class="user-info">
-          <div>Welcome, <strong id="userName">Hemmant</strong></div>
-          <div id="userRole">Patient</div>
+          <div>Welcome, <strong id="userName">Loading...</strong></div>
+          <div id="userRole">Loading...</div>
         </div>
       </div>
       
       <nav class="nav-menu">
-        <a href="#" class="nav-item active" data-tab="dashboard">
+        <a class="nav-item active" data-tab="dashboard">
           <span class="nav-icon">📊</span>
           <span>Dashboard</span>
         </a>
-        <a href="#" class="nav-item" data-tab="appointments">
+        <a class="nav-item" data-tab="appointments">
           <span class="nav-icon">📅</span>
           <span>Appointments</span>
         </a>
-        <a href="#" class="nav-item" data-tab="medical-records">
+        <a class="nav-item" data-tab="medical-records">
           <span class="nav-icon">📋</span>
           <span>Medical Records</span>
         </a>
-        <a href="#" class="nav-item" data-tab="ai-prediction">
+        <a class="nav-item" data-tab="ai-prediction">
           <span class="nav-icon">🤖</span>
           <span>AI Health Check</span>
         </a>
-        <a href="#" class="nav-item" data-tab="health-alerts">
+        <a class="nav-item" data-tab="health-alerts">
           <span class="nav-icon">🔔</span>
           <span>Health Alerts</span>
         </a>
-        <a href="#" class="nav-item" data-tab="schemes">
+        <a class="nav-item" data-tab="schemes">
           <span class="nav-icon">🏛️</span>
           <span>Gov Schemes</span>
         </a>
-        <a href="#" class="nav-item" data-tab="profile">
+        <a class="nav-item" data-tab="profile">
           <span class="nav-icon">👤</span>
           <span>Profile</span>
         </a>
-        <a href="#" class="nav-item" onclick="logout()">
+        <a class="nav-item" onclick="logout()">
           <span class="nav-icon">🚪</span>
           <span>Logout</span>
         </a>
@@ -91,7 +91,7 @@
             <span>🔍</span>
             Search
           </button>
-          <button class="action-btn btn-primary" onclick="bookAppointment()">
+          <button class="action-btn btn-primary" onclick="OpenBookingModal()">
             <span>📅</span>
             Book Appointment
           </button>
@@ -100,24 +100,6 @@
 
       <!-- Dashboard Content -->
       <div id="dashboardContent" class="tab-content">
-        <!-- Health Alerts -->
-        <div class="health-alerts">
-          <div class="alert-content">
-            <div class="alert-title">
-              <span>⚠️</span>
-              Health Reminder
-            </div>
-            <div class="alert-message">
-              You have a cardiology appointment scheduled for tomorrow at 2:00 PM with Dr. Smith.
-            </div>
-            <div class="alert-actions">
-              <button class="alert-btn alert-btn-primary">View Details</button>
-              <button class="alert-btn alert-btn-secondary">Dismiss</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dashboard Cards -->
         <div class="dashboard-grid">
           <div class="dashboard-card">
             <div class="card-icon icon-blue">📅</div>
@@ -155,37 +137,552 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Quick Actions -->
+            <!-- Appointments Content -->
+      <div id="appointmentsContent" class="tab-content">
+        <div class="appointments-header">
+          <div class="section-title">
+            <span>📅</span>
+            Appointments
+          </div>
+          <button class="action-btn btn-primary" onclick="openBookingModal()">
+            <span>➕</span>
+            Book New Appointment
+          </button>
+        </div>
+
+        <div class="appointment-stats">
+          <div class="stat-card stat-upcoming">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Upcoming</div>
+          </div>
+          <div class="stat-card stat-completed">
+            <div class="stat-number">12</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-card stat-cancelled">
+            <div class="stat-number">1</div>
+            <div class="stat-label">Cancelled</div>
+          </div>
+        </div>
+
+        <div class="appointment-filters">
+          <button class="filter-btn active" onclick="filterAppointments('all')">All</button>
+          <button class="filter-btn" onclick="filterAppointments('upcoming')">Upcoming</button>
+          <button class="filter-btn" onclick="filterAppointments('completed')">Completed</button>
+          <button class="filter-btn" onclick="filterAppointments('cancelled')">Cancelled</button>
+        </div>
+
+        <div class="appointments-list">
+          <div class="appointment-card upcoming">
+            <div class="appointment-left">
+              <div class="doctor-avatar">
+                <span>👨‍⚕️</span>
+              </div>
+              <div class="appointment-details">
+                <div class="doctor-name">Dr. John Smith</div>
+                <div class="specialization">Cardiologist</div>
+                <div class="appointment-reason">Regular Checkup</div>
+              </div>
+            </div>
+            <div class="appointment-right">
+              <div class="appointment-time">
+                <div class="date">Tomorrow</div>
+                <div class="time">2:00 PM</div>
+              </div>
+              <div class="appointment-status status-upcoming">Upcoming</div>
+              <div class="appointment-actions">
+                <button class="action-btn-small btn-secondary" onclick="rescheduleAppointment(1)">Reschedule</button>
+                <button class="action-btn-small btn-danger" onclick="cancelAppointment(1)">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="appointment-card upcoming">
+            <div class="appointment-left">
+              <div class="doctor-avatar">
+                <span>👩‍⚕️</span>
+              </div>
+              <div class="appointment-details">
+                <div class="doctor-name">Dr. Sarah Wilson</div>
+                <div class="specialization">Dermatologist</div>
+                <div class="appointment-reason">Skin Consultation</div>
+              </div>
+            </div>
+            <div class="appointment-right">
+              <div class="appointment-time">
+                <div class="date">Dec 25</div>
+                <div class="time">10:30 AM</div>
+              </div>
+              <div class="appointment-status status-upcoming">Upcoming</div>
+              <div class="appointment-actions">
+                <button class="action-btn-small btn-secondary" onclick="rescheduleAppointment(2)">Reschedule</button>
+                <button class="action-btn-small btn-danger" onclick="cancelAppointment(2)">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="appointment-card completed">
+            <div class="appointment-left">
+              <div class="doctor-avatar">
+                <span>👨‍⚕️</span>
+              </div>
+              <div class="appointment-details">
+                <div class="doctor-name">Dr. Michael Chen</div>
+                <div class="specialization">General Physician</div>
+                <div class="appointment-reason">Annual Physical</div>
+              </div>
+            </div>
+            <div class="appointment-right">
+              <div class="appointment-time">
+                <div class="date">Dec 15</div>
+                <div class="time">3:00 PM</div>
+              </div>
+              <div class="appointment-status status-completed">Completed</div>
+              <div class="appointment-actions">
+                <button class="action-btn-small btn-secondary" onclick="viewReport(3)">View Report</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Content -->
+      <div id="profileContent" class="tab-content">
         <div class="section-title">
-          <span>⚡</span>
-          Quick Actions
+          <span>👤</span>
+          Profile Settings
         </div>
-        <div class="quick-actions">
-          <div class="quick-action-card" onclick="bookAppointment()">
-            <div class="quick-action-icon icon-blue">📅</div>
-            <div class="quick-action-title">Book Appointment</div>
-            <div class="quick-action-desc">Schedule with available doctors</div>
+
+        <div class="profile-section">
+          <div class="profile-header">
+            <div class="profile-avatar">
+              <span>👤</span>
+            </div>
+            <div class="profile-info">
+              <h2 id="profileName">Loading...</h2>
+              <p id="profileRole">Loading...</p>
+            </div>
           </div>
-          
-          <div class="quick-action-card" onclick="uploadRecord()">
-            <div class="quick-action-icon icon-green">📤</div>
-            <div class="quick-action-title">Upload Records</div>
-            <div class="quick-action-desc">Add medical documents</div>
+
+          <form id="profileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profileFullName">Full Name</label>
+                <input type="text" id="profileFullName" placeholder="Enter your full name">
+              </div>
+              <div class="form-group">
+                <label for="profileEmail">Email Address</label>
+                <input type="email" id="profileEmail" placeholder="Enter your email">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profilePhone">Phone Number</label>
+                <input type="tel" id="profilePhone" placeholder="Enter your phone number">
+              </div>
+              <div class="form-group">
+                <label for="profileDOB">Date of Birth</label>
+                <input type="date" id="profileDOB">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="profileAddress">Address</label>
+              <input type="text" id="profileAddress" placeholder="Enter your address">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profileCity">City</label>
+                <input type="text" id="profileCity" placeholder="Enter your city">
+              </div>
+              <div class="form-group">
+                <label for="profileState">State</label>
+                <input type="text" id="profileState" placeholder="Enter your state">
+              </div>
+            </div>
+
+            <button type="submit" class="action-btn btn-primary" style="width: 100%; margin-top: 20px;">
+              <span>💾</span>
+              Save Changes
+            </button>
+          </form>
+        </div>
+
+        <div class="profile-section">
+          <h3 style="margin-bottom: 20px; color: #2d3748;">Change Password</h3>
+          <form id="passwordForm">
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+              </div>
+            </div>
+            <button type="submit" class="action-btn btn-primary" style="width: 100%;">
+              <span>🔐</span>
+              Update Password
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Government Schemes Content -->
+      <div id="schemesContent" class="tab-content">
+        <div class="section-title">
+          <span>🏛️</span>
+          Government Health Schemes
+        </div>
+
+        <div class="schemes-grid">
+          <div class="scheme-card">
+            <div class="scheme-header">
+              <div class="scheme-title">Ayushman Bharat</div>
+              <div class="scheme-subtitle">Pradhan Mantri Jan Arogya Yojana (PM-JAY)</div>
+            </div>
+            <div class="scheme-benefits">
+              <h4>Benefits:</h4>
+              <ul>
+                <li>Free health coverage up to ₹5 lakh per family per year</li>
+                <li>Covers over 1,400 medical procedures</li>
+                <li>Cashless treatment at empaneled hospitals</li>
+                <li>Coverage for pre and post-hospitalization expenses</li>
+              </ul>
+            </div>
+            <div class="scheme-eligibility">
+              <strong>Eligibility:</strong> Based on SECC-2011 database and state-specific criteria
+            </div>
+            <div class="scheme-actions">
+              <button class="action-btn btn-primary">Check Eligibility</button>
+              <button class="action-btn btn-secondary">Learn More</button>
+            </div>
           </div>
-          
-          <div class="quick-action-card" onclick="showTab('ai-prediction')">
-            <div class="quick-action-icon icon-purple">🤖</div>
-            <div class="quick-action-title">Health Check</div>
-            <div class="quick-action-desc">AI-powered risk assessment</div>
+
+          <div class="scheme-card">
+            <div class="scheme-header">
+              <div class="scheme-title">CGHS</div>
+              <div class="scheme-subtitle">Central Government Health Scheme</div>
+            </div>
+            <div class="scheme-benefits">
+              <h4>Benefits:</h4>
+              <ul>
+                <li>Comprehensive medical care for central government employees</li>
+                <li>Cashless treatment at CGHS hospitals</li>
+                <li>Reimbursement facility for private hospitals</li>
+                <li>Coverage for family members</li>
+              </ul>
+            </div>
+            <div class="scheme-eligibility">
+              <strong>Eligibility:</strong> Central Government employees and pensioners
+            </div>
+            <div class="scheme-actions">
+              <button class="action-btn btn-primary">Apply Now</button>
+              <button class="action-btn btn-secondary">Download Form</button>
+            </div>
           </div>
-          
-          <div class="quick-action-card" onclick="showTab('schemes')">
-            <div class="quick-action-icon icon-orange">🏛️</div>
-            <div class="quick-action-title">Gov Schemes</div>
-            <div class="quick-action-desc">Explore health benefits</div>
+
+          <div class="scheme-card">
+            <div class="scheme-header">
+              <div class="scheme-title">ESI Scheme</div>
+              <div class="scheme-subtitle">Employee State Insurance</div>
+            </div>
+            <div class="scheme-benefits">
+              <h4>Benefits:</h4>
+              <ul>
+                <li>Medical care for employees and dependents</li>
+                <li>Cash benefits during sickness and maternity</li>
+                <li>Disability and dependent benefits</li>
+                <li>Funeral expenses coverage</li>
+              </ul>
+            </div>
+            <div class="scheme-eligibility">
+              <strong>Eligibility:</strong> Employees earning up to ₹25,000 per month
+            </div>
+            <div class="scheme-actions">
+              <button class="action-btn btn-primary">Register</button>
+              <button class="action-btn btn-secondary">Find Hospital</button>
+            </div>
+          </div>
+
+          <div class="scheme-card">
+            <div class="scheme-header">
+              <div class="scheme-title">Janani Suraksha Yojana</div>
+              <div class="scheme-subtitle">Safe Motherhood Intervention</div>
+            </div>
+            <div class="scheme-benefits">
+              <h4>Benefits:</h4>
+              <ul>
+                <li>Cash assistance for institutional delivery</li>
+                <li>Free delivery in government hospitals</li>
+                <li>Post-delivery care support</li>
+                <li>Transportation allowance</li>
+              </ul>
+            </div>
+            <div class="scheme-eligibility">
+              <strong>Eligibility:</strong> Pregnant women, especially from BPL families
+            </div>
+            <div class="scheme-actions">
+              <button class="action-btn btn-primary">Apply</button>
+              <button class="action-btn btn-secondary">Guidelines</button>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Medical Records Content -->
+      <div id="medical-recordsContent" class="tab-content">
+        <div class="medical-records-header">
+          <div class="section-title">
+            <span>📋</span>
+            Medical Records
+          </div>
+          <button class="action-btn btn-primary" onclick="uploadRecord()">
+            <span>📤</span>
+            Upload New Record
+          </button>
+        </div>
+
+        <div class="medical-records-stats">
+          <div class="stat-card stat-documents">
+            <div class="stat-number">24</div>
+            <div class="stat-label">Total Documents</div>
+          </div>
+          <div class="stat-card stat-recent">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Recent Uploads</div>
+          </div>
+          <div class="stat-card stat-shared">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Shared with Doctors</div>
+          </div>
+        </div>
+
+        <div class="medical-records-filters">
+          <button class="filter-btn active" onclick="filterRecords('all')">All Records</button>
+          <button class="filter-btn" onclick="filterRecords('lab')">Lab Reports</button>
+          <button class="filter-btn" onclick="filterRecords('prescription')">Prescriptions</button>
+          <button class="filter-btn" onclick="filterRecords('scan')">Scans & Images</button>
+          <button class="filter-btn" onclick="filterRecords('other')">Other</button>
+        </div>
+
+        <div class="medical-records-list">
+          <div class="record-card lab">
+            <div class="record-icon">🧪</div>
+            <div class="record-details">
+              <div class="record-title">Blood Test Report</div>
+              <div class="record-date">Dec 20, 2024</div>
+              <div class="record-type">Lab Report</div>
+            </div>
+            <div class="record-actions">
+              <button class="action-btn-small btn-secondary" onclick="viewRecord(1)">View</button>
+              <button class="action-btn-small btn-primary" onclick="shareRecord(1)">Share</button>
+            </div>
+          </div>
+
+          <div class="record-card prescription">
+            <div class="record-icon">💊</div>
+            <div class="record-details">
+              <div class="record-title">Prescription - Dr. Smith</div>
+              <div class="record-date">Dec 18, 2024</div>
+              <div class="record-type">Prescription</div>
+            </div>
+            <div class="record-actions">
+              <button class="action-btn-small btn-secondary" onclick="viewRecord(2)">View</button>
+              <button class="action-btn-small btn-primary" onclick="shareRecord(2)">Share</button>
+            </div>
+          </div>
+
+          <div class="record-card scan">
+            <div class="record-icon">📷</div>
+            <div class="record-details">
+              <div class="record-title">X-Ray Chest</div>
+              <div class="record-date">Dec 15, 2024</div>
+              <div class="record-type">Scan & Image</div>
+            </div>
+            <div class="record-actions">
+              <button class="action-btn-small btn-secondary" onclick="viewRecord(3)">View</button>
+              <button class="action-btn-small btn-primary" onclick="shareRecord(3)">Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Health Checkup Content -->
+      <div id="ai-predictionContent" class="tab-content">
+        <div class="ai-health-header">
+          <div class="section-title">
+            <span>🤖</span>
+            AI Health Checkup
+          </div>
+          <div class="ai-status">
+            <div class="status-indicator healthy">Healthy</div>
+          </div>
+        </div>
+
+        <div class="ai-health-cards">
+          <div class="ai-card">
+            <div class="ai-card-header">
+              <div class="ai-card-icon">🔍</div>
+              <div class="ai-card-title">Symptom Analysis</div>
+            </div>
+            <div class="ai-card-content">
+              <p>Describe your symptoms and get AI-powered analysis</p>
+              <button class="action-btn btn-primary" onclick="startSymptomAnalysis()">
+                <span>🔍</span>
+                Start Analysis
+              </button>
+            </div>
+          </div>
+
+          <div class="ai-card">
+            <div class="ai-card-header">
+              <div class="ai-card-icon">📊</div>
+              <div class="ai-card-title">Health Risk Assessment</div>
+            </div>
+            <div class="ai-card-content">
+              <p>Complete a comprehensive health questionnaire</p>
+              <button class="action-btn btn-primary" onclick="startRiskAssessment()">
+                <span>📊</span>
+                Take Assessment
+              </button>
+            </div>
+          </div>
+
+          <div class="ai-card">
+            <div class="ai-card-header">
+              <div class="ai-card-icon">💡</div>
+              <div class="ai-card-title">Health Recommendations</div>
+            </div>
+            <div class="ai-card-content">
+              <p>Get personalized health tips and recommendations</p>
+              <button class="action-btn btn-primary" onclick="getRecommendations()">
+                <span>💡</span>
+                Get Tips
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-results">
+          <div class="section-title">
+            <span>📈</span>
+            Recent Analysis Results
+          </div>
+          <div class="result-card">
+            <div class="result-header">
+              <div class="result-title">Health Score: 85/100</div>
+              <div class="result-date">Last checked: Dec 20, 2024</div>
+            </div>
+            <div class="result-details">
+              <div class="result-item good">
+                <span class="result-icon">✅</span>
+                <span>Blood pressure: Normal</span>
+              </div>
+              <div class="result-item good">
+                <span class="result-icon">✅</span>
+                <span>Heart rate: Optimal</span>
+              </div>
+              <div class="result-item warning">
+                <span class="result-icon">⚠️</span>
+                <span>Sleep quality: Needs improvement</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Alerts Content -->
+      <div id="health-alertsContent" class="tab-content">
+        <div class="health-alerts-header">
+          <div class="section-title">
+            <span>🔔</span>
+            Health Alerts
+          </div>
+          <div class="alert-settings">
+            <button class="action-btn btn-secondary" onclick="openAlertSettings()">
+              <span>⚙️</span>
+              Settings
+            </button>
+          </div>
+        </div>
+
+        <div class="alerts-summary">
+          <div class="alert-stat">
+            <div class="alert-number">5</div>
+            <div class="alert-label">Active Alerts</div>
+          </div>
+          <div class="alert-stat">
+            <div class="alert-number">12</div>
+            <div class="alert-label">This Week</div>
+          </div>
+          <div class="alert-stat">
+            <div class="alert-number">3</div>
+            <div class="alert-label">Urgent</div>
+          </div>
+        </div>
+
+        <div class="alerts-list">
+          <div class="alert-item urgent">
+            <div class="alert-icon">🚨</div>
+            <div class="alert-content">
+              <div class="alert-title">Medication Reminder</div>
+              <div class="alert-message">Take your blood pressure medication - 2:00 PM</div>
+              <div class="alert-time">2 minutes ago</div>
+            </div>
+            <div class="alert-actions">
+              <button class="alert-btn alert-btn-primary" onclick="markAsRead(1)">Mark as Read</button>
+            </div>
+          </div>
+
+          <div class="alert-item normal">
+            <div class="alert-icon">📅</div>
+            <div class="alert-content">
+              <div class="alert-title">Appointment Reminder</div>
+              <div class="alert-message">You have an appointment with Dr. Smith tomorrow at 2:00 PM</div>
+              <div class="alert-time">1 hour ago</div>
+            </div>
+            <div class="alert-actions">
+              <button class="alert-btn alert-btn-primary" onclick="markAsRead(2)">Mark as Read</button>
+            </div>
+          </div>
+
+          <div class="alert-item info">
+            <div class="alert-icon">💡</div>
+            <div class="alert-content">
+              <div class="alert-title">Health Tip</div>
+              <div class="alert-message">Remember to drink 8 glasses of water today for optimal health</div>
+              <div class="alert-time">3 hours ago</div>
+            </div>
+            <div class="alert-actions">
+              <button class="alert-btn alert-btn-secondary" onclick="dismissAlert(3)">Dismiss</button>
+            </div>
+          </div>
+
+          <div class="alert-item warning">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <div class="alert-title">Lab Results Available</div>
+              <div class="alert-message">Your blood test results from Dec 20 are now available</div>
+              <div class="alert-time">1 day ago</div>
+            </div>
+            <div class="alert-actions">
+              <button class="alert-btn alert-btn-primary" onclick="viewResults(4)">View Results</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
         <!-- Recent Activity -->
         <div class="recent-activity">
@@ -219,94 +716,10 @@
         </div>
       </div>
 
-      <!-- Other Tab Contents (Hidden by default) -->
-      <div id="appointmentsContent" class="tab-content" style="display: none;">
-        <div class="section-title">📅 Appointments</div>
-        <div class="dashboard-card">
-          <p>Appointment booking and management functionality would be implemented here.</p>
-          <p>Features include:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>View available doctor slots</li>
-            <li>Book new appointments</li>
-            <li>Reschedule or cancel existing appointments</li>
-            <li>Appointment history</li>
-          </ul>
-        </div>
-      </div>
-
-      <div id="medical-recordsContent" class="tab-content" style="display: none;">
-        <div class="section-title">📋 Medical Records</div>
-        <div class="dashboard-card">
-          <p>Medical records management system would be implemented here.</p>
-          <p>Features include:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Upload medical documents (PDF, images)</li>
-            <li>View medical history</li>
-            <li>Share records with doctors</li>
-            <li>Secure document storage</li>
-          </ul>
-        </div>
-      </div>
-
-      <div id="ai-predictionContent" class="tab-content" style="display: none;">
-        <div class="section-title">🤖 AI Health Prediction</div>
-        <div class="dashboard-card">
-          <p>AI-powered health risk assessment tool would be implemented here.</p>
-          <p>Features include:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Symptom analysis</li>
-            <li>Disease risk prediction</li>
-            <li>Health recommendations</li>
-            <li>Specialist consultation suggestions</li>
-          </ul>
-        </div>
-      </div>
-
-      <div id="health-alertsContent" class="tab-content" style="display: none;">
-        <div class="section-title">🔔 Health Alerts</div>
-        <div class="dashboard-card">
-          <p>Health alerts and notifications system would be implemented here.</p>
-          <p>Features include:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Medication reminders</li>
-            <li>Appointment notifications</li>
-            <li>Health tips and updates</li>
-            <li>Emergency alerts</li>
-          </ul>
-        </div>
-      </div>
-
-      <div id="schemesContent" class="tab-content" style="display: none;">
-        <div class="section-title">🏛️ Government Health Schemes</div>
-        <div class="dashboard-card">
-          <p>Government health schemes information portal would be implemented here.</p>
-          <p>Available schemes:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Ayushman Bharat - Pradhan Mantri Jan Arogya Yojana</li>
-            <li>Rashtriya Swasthya Bima Yojana (RSBY)</li>
-            <li>Central Government Health Scheme (CGHS)</li>
-            <li>State-specific health schemes</li>
-          </ul>
-        </div>
-      </div>
-
-      <div id="profileContent" class="tab-content" style="display: none;">
-        <div class="section-title">👤 Profile Settings</div>
-        <div class="dashboard-card">
-          <p>User profile management would be implemented here.</p>
-          <p>Features include:</p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Personal information</li>
-            <li>Contact details</li>
-            <li>Password change</li>
-            <li>Privacy settings</li>
-          </ul>
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- Overlay for mobile -->
+<!-- Overlay for mobile -->
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
   <!-- Book Appointment Modal -->
@@ -317,16 +730,46 @@
         <button class="close-btn" onclick="closeModal('appointmentModal')">&times;</button>
       </div>
       <div class="modal-body">
-        <p>Appointment booking form would be implemented here with:</p>
-        <ul style="margin: 15px 0; padding-left: 20px;">
-          <li>Doctor selection</li>
-          <li>Date and time picker</li>
-          <li>Reason for visit</li>
-          <li>Contact preferences</li>
-        </ul>
+        <form id="bookingForm">
+          <div class="form-group">
+            <label for="doctorSelect">Select Doctor</label>
+            <select id="doctorSelect" required>
+              <option value="">Choose a doctor</option>
+              <option value="dr-smith">Dr. John Smith - Cardiologist</option>
+              <option value="dr-wilson">Dr. Sarah Wilson - Dermatologist</option>
+              <option value="dr-chen">Dr. Michael Chen - General Physician</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="appointmentDate">Date</label>
+              <input type="date" id="appointmentDate" required>
+            </div>
+            <div class="form-group">
+              <label for="appointmentTime">Time</label>
+              <select id="appointmentTime" required>
+                <option value="">Select time</option>
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="appointmentReason">Reason for Visit</label>
+            <input type="text" id="appointmentReason" placeholder="Brief description of your concern" required>
+          </div>
+          <button type="submit" class="action-btn btn-primary" style="width: 100%;">
+            <span>📅</span>
+            Book Appointment
+          </button>
+        </form>
       </div>
     </div>
   </div>
 </body>
-<script src="dashboard-sript.js"></script>
+<script src="dashboard-script.js"></script>
 </html>

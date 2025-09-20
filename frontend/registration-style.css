@@ -61,6 +61,23 @@
       100% { transform: rotate(360deg); }
     }
 
+    .header-logo {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .header-logo-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 8px;
+      backdrop-filter: blur(10px);
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+
     .header h2 {
       font-size: 28px;
       font-weight: 600;

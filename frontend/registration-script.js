@@ -1,4 +1,5 @@
 // registration-script.js
+document.addEventListener('DOMContentLoaded', function() {
     const registrationForm = document.getElementById('registrationForm');
     const loginForm = document.getElementById('loginForm');
     const doctorFields = document.getElementById('doctorFields');
@@ -111,21 +112,19 @@
     });
 
     document.getElementById('phone').addEventListener('blur', function() {
-  validateField(
-    this,
-    document.getElementById('phoneError'),
-    value => {
-      const cleaned = value.replace(/\D/g, ''); // Remove all non-digit characters
-      return (
-        /^(\+91)?[6-9]\d{9}$/.test(value) || // Accept +91 format
-        /^0[6-9]\d{9}$/.test(value) ||       // Accept leading 0 format
-        /^[6-9]\d{9}$/.test(value)           // Accept plain 10-digit format
+      validateField(
+        this,
+        document.getElementById('phoneError'),
+        value => {
+          const cleaned = value.replace(/\D/g, ''); // Remove all non-digit characters
+          return (
+            /^(\+91)?[6-9]\d{9}$/.test(value) || // Accept +91 format
+            /^0[6-9]\d{9}$/.test(value) ||       // Accept leading 0 format
+            /^[6-9]\d{9}$/.test(value)           // Accept plain 10-digit format
+          );
+        }
       );
-    }
-  );
-});
-
-
+    });
 
     document.getElementById('dob').addEventListener('blur', function() {
       validateField(this, document.getElementById('dobError'), 
@@ -158,20 +157,30 @@
       e.preventDefault();
 
       // Get form data
-  const formData = new FormData(this);
-  const userData = {
-    name: formData.get('fullname'),
-    email: formData.get('email'),
-    phone: formData.get('phone'),
-    role: formData.get('role'),
-    gender: formData.get('gender'),
-    dob: formData.get('dob'),
-    specialization: formData.get('specialization'),
-    license: formData.get('license')
-  };
-  
-  // Store user data
-  localStorage.setItem('currentUser', JSON.stringify(userData));
+      const formData = new FormData(this);
+      const password = formData.get('password');
+      
+      // Validate password length
+      if (password.length < 8) {
+        document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long';
+        document.getElementById('passwordError').style.display = 'block';
+        document.getElementById('password').classList.add('field-invalid');
+        return;
+      }
+      
+      const userData = {
+        name: formData.get('fullname'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        role: formData.get('role'),
+        gender: formData.get('gender'),
+        dob: formData.get('dob'),
+        specialization: formData.get('specialization'),
+        license: formData.get('license')
+      };
+      
+      // Store user data
+      localStorage.setItem('currentUser', JSON.stringify(userData));
       
       // Simulate loading state
       submitBtn.classList.add('loading');
@@ -209,25 +218,9 @@
       }, 1500);
     });
 
-document.getElementById('phone').addEventListener('blur', function() {
-  validateField(
-    this,
-    document.getElementById('phoneError'),
-    value => {
-      const cleaned = value.replace(/\D/g, ''); // Remove non-digit characters
-      return (
-        /^(\+91)?[6-9]\d{9}$/.test(cleaned) || // +91 format
-        /^0[6-9]\d{9}$/.test(cleaned) ||       // 0 format
-        /^[6-9]\d{9}$/.test(cleaned)           // plain 10-digit format
-      );
-    }
-  );
-});
-
-
-
     // Forgot password functionality
     document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
       e.preventDefault();
       alert('Password reset functionality would be implemented here. Please contact support for now.');
     });
+});

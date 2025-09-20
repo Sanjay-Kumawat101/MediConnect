@@ -1,0 +1,21 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#DDA0DD;stop-opacity:1" />
+</linearGradient>
+<linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#00DCA8;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+</linearGradient>
+<linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0%" style="stop-color:#FFFF00;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#9CFF00;stop-opacity:1" />
+</linearGradient>
+</defs>
+<rect width="80" height="80" fill="url(#bgGrad)" rx="15"/>
+<!-- Medical Cross Symbol -->
+<path d="M35 15 L45 15 L45 35 L65 35 L65 45 L45 45 L45 65 L35 65 L35 45 L15 45 L15 35 L35 35 Z" fill="url(#logoGrad)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<!-- MediConnect Text -->
+<text x="40" y="75" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="url(#textGrad)" text-anchor="middle">MediConnect</text>
+</svg>
