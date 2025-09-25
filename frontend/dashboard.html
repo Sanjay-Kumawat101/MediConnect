@@ -174,78 +174,7 @@
           <button class="filter-btn" onclick="filterAppointments('cancelled')">Cancelled</button>
         </div>
 
-        <div class="appointments-list">
-          <div class="appointment-card upcoming">
-            <div class="appointment-left">
-              <div class="doctor-avatar">
-                <span>👨‍⚕️</span>
-              </div>
-              <div class="appointment-details">
-                <div class="doctor-name">Dr. John Smith</div>
-                <div class="specialization">Cardiologist</div>
-                <div class="appointment-reason">Regular Checkup</div>
-              </div>
-            </div>
-            <div class="appointment-right">
-              <div class="appointment-time">
-                <div class="date">Tomorrow</div>
-                <div class="time">2:00 PM</div>
-              </div>
-              <div class="appointment-status status-upcoming">Upcoming</div>
-              <div class="appointment-actions">
-                <button class="action-btn-small btn-secondary" onclick="rescheduleAppointment(1)">Reschedule</button>
-                <button class="action-btn-small btn-danger" onclick="cancelAppointment(1)">Cancel</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="appointment-card upcoming">
-            <div class="appointment-left">
-              <div class="doctor-avatar">
-                <span>👩‍⚕️</span>
-              </div>
-              <div class="appointment-details">
-                <div class="doctor-name">Dr. Sarah Wilson</div>
-                <div class="specialization">Dermatologist</div>
-                <div class="appointment-reason">Skin Consultation</div>
-              </div>
-            </div>
-            <div class="appointment-right">
-              <div class="appointment-time">
-                <div class="date">Dec 25</div>
-                <div class="time">10:30 AM</div>
-              </div>
-              <div class="appointment-status status-upcoming">Upcoming</div>
-              <div class="appointment-actions">
-                <button class="action-btn-small btn-secondary" onclick="rescheduleAppointment(2)">Reschedule</button>
-                <button class="action-btn-small btn-danger" onclick="cancelAppointment(2)">Cancel</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="appointment-card completed">
-            <div class="appointment-left">
-              <div class="doctor-avatar">
-                <span>👨‍⚕️</span>
-              </div>
-              <div class="appointment-details">
-                <div class="doctor-name">Dr. Michael Chen</div>
-                <div class="specialization">General Physician</div>
-                <div class="appointment-reason">Annual Physical</div>
-              </div>
-            </div>
-            <div class="appointment-right">
-              <div class="appointment-time">
-                <div class="date">Dec 15</div>
-                <div class="time">3:00 PM</div>
-              </div>
-              <div class="appointment-status status-completed">Completed</div>
-              <div class="appointment-actions">
-                <button class="action-btn-small btn-secondary" onclick="viewReport(3)">View Report</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="appointments-list" id="appointmentsList"></div>
       </div>
 
       <!-- Profile Content -->
@@ -735,9 +664,6 @@
             <label for="doctorSelect">Select Doctor</label>
             <select id="doctorSelect" required>
               <option value="">Choose a doctor</option>
-              <option value="dr-smith">Dr. John Smith - Cardiologist</option>
-              <option value="dr-wilson">Dr. Sarah Wilson - Dermatologist</option>
-              <option value="dr-chen">Dr. Michael Chen - General Physician</option>
             </select>
           </div>
           <div class="form-row">

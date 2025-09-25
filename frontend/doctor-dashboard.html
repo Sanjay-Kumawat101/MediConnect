@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediConnect Doctor Dashboard</title>
+  <link rel="stylesheet" href="dashboard-style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="mediconnect-logo.svg" alt="MediConnect" class="logo-image">
+          <span>MediConnect</span>
+        </div>
+        <div class="user-info">
+          <div>Welcome, <strong id="userName">Loading...</strong></div>
+          <div id="userRole">Doctor</div>
+        </div>
+      </div>
+      <nav class="nav-menu">
+        <a class="nav-item active" data-tab="doctor-dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+        <a class="nav-item" data-tab="doctor-appointments"><span class="nav-icon">📅</span><span>Appointments</span></a>
+        <a class="nav-item" data-tab="schedule"><span class="nav-icon">🗓️</span><span>Schedule</span></a>
+        <a class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></a>
+      </nav>
+    </div>
+
+    <div class="main-content">
+      <div class="top-bar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="welcome-text">
+          <h1>Doctor Console</h1>
+          <p>Manage appointments and availability</p>
+        </div>
+        <div class="top-actions">
+          <button class="action-btn btn-secondary" onclick="refreshAppointments()">Refresh</button>
+        </div>
+      </div>
+
+      <div id="doctor-dashboardContent" class="tab-content">
+        <div class="dashboard-grid">
+          <div class="dashboard-card"><div class="card-icon icon-blue">📅</div><div class="card-content"><div class="stat-number" id="statPending">0</div><div class="stat-label">Pending Requests</div></div></div>
+          <div class="dashboard-card"><div class="card-icon icon-green">✅</div><div class="card-content"><div class="stat-number" id="statUpcoming">0</div><div class="stat-label">Upcoming</div></div></div>
+          <div class="dashboard-card"><div class="card-icon icon-orange">❌</div><div class="card-content"><div class="stat-number" id="statCancelled">0</div><div class="stat-label">Cancelled</div></div></div>
+        </div>
+      </div>
+
+      <div id="doctor-appointmentsContent" class="tab-content" style="display:none;">
+        <div class="section-title"><span>📅</span>Appointments</div>
+        <div class="appointments-list" id="docAppointmentsList"></div>
+      </div>
+
+      <div id="scheduleContent" class="tab-content" style="display:none;">
+        <div class="section-title"><span>🗓️</span>Schedule Availability</div>
+        <div class="dashboard-card">
+          <form id="availabilityForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="availDate">Date</label>
+                <input type="date" id="availDate" required>
+              </div>
+              <div class="form-group">
+                <label for="availTime">Time</label>
+                <input type="time" id="availTime" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="availNotes">Notes</label>
+              <input type="text" id="availNotes" placeholder="Optional notes">
+            </div>
+            <button class="action-btn btn-primary" type="submit">Add Availability</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <script src="doctor-dashboard.js"></script>
+</body>
+</html>
+

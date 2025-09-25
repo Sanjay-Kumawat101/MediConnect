@@ -1,5 +1,8 @@
 // registration-script.js
 document.addEventListener('DOMContentLoaded', function() {
+    // API base resolver (supports file:// or different origins)
+    const DEFAULT_API = 'http://localhost:4000';
+    const API_BASE = (window.__API_BASE || (window.location.protocol === 'file:' ? DEFAULT_API : ''));
     const registrationForm = document.getElementById('registrationForm');
     const loginForm = document.getElementById('loginForm');
     const doctorFields = document.getElementById('doctorFields');
@@ -129,8 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('dob').addEventListener('blur', function() {
       validateField(this, document.getElementById('dobError'), 
         value => {
+          if (!value) return false;
           const today = new Date();
+          today.setHours(0,0,0,0);
           const birthDate = new Date(value);
+          if (isNaN(birthDate.getTime())) return false;
+          if (birthDate > today) return false; // disallow future date
           const age = today.getFullYear() - birthDate.getFullYear();
           return age >= 0 && age <= 120;
         });
@@ -152,70 +159,86 @@ document.addEventListener('DOMContentLoaded', function() {
         value => value.length > 0);
     });
 
-    // Registration form submission
-    registrationForm.addEventListener('submit', function(e) {
+    // Registration form submission (calls backend)
+    registrationForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      // Get form data
       const formData = new FormData(this);
       const password = formData.get('password');
-      
-      // Validate password length
       if (password.length < 8) {
         document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long';
         document.getElementById('passwordError').style.display = 'block';
         document.getElementById('password').classList.add('field-invalid');
         return;
       }
-      
-      const userData = {
+
+      const payload = {
         name: formData.get('fullname'),
         email: formData.get('email'),
         phone: formData.get('phone'),
         role: formData.get('role'),
         gender: formData.get('gender'),
         dob: formData.get('dob'),
-        specialization: formData.get('specialization'),
-        license: formData.get('license')
+        password
       };
-      
-      // Store user data
-      localStorage.setItem('currentUser', JSON.stringify(userData));
-      
-      // Simulate loading state
+
       submitBtn.classList.add('loading');
       submitBtn.textContent = 'Creating Account...';
-      
-      // Simulate API call
-      setTimeout(() => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+        // Save token and user for dashboard
+        sessionStorage.setItem('mc_token', data.token);
+        sessionStorage.setItem('mc_user', JSON.stringify(data.user));
+
         successMessage.style.display = 'block';
-        successMessage.textContent = 'Registration successful! Redirecting to dashboard...';
-        
-        // Simulate redirect to dashboard
-        setTimeout(() => {
-          window.location.href = 'dashboard.html'; 
-        }, 1500);
-      }, 1500);
+        successMessage.textContent = 'Registration successful! Redirecting...';
+        const redirectTo = (data.user?.role === 'doctor') ? 'doctor-dashboard.html' : 'dashboard.html';
+        setTimeout(() => { window.location.href = redirectTo; }, 800);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = 'Create Account';
+      }
     });
 
-    // Login form submission
-    loginForm.addEventListener('submit', function(e) {
+    // Login form submission (calls backend)
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      
-      // Simulate loading state
       loginBtn.classList.add('loading');
       loginBtn.textContent = 'Signing In...';
-      
-      // Simulate API call
-      setTimeout(() => {
+      try {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Login failed');
+        }
+        sessionStorage.setItem('mc_token', data.token);
+        sessionStorage.setItem('mc_user', JSON.stringify(data.user));
         successMessage.style.display = 'block';
-        successMessage.textContent = 'Login successful! Welcome back to MediConnect.';
-        
-        // Simulate redirect to dashboard
-        setTimeout(() => {
-          window.location.href = 'dashboard.html'; 
-        }, 1500);
-      }, 1500);
+        successMessage.textContent = 'Login successful! Redirecting...';
+        const redirectTo = (data.user?.role === 'doctor') ? 'doctor-dashboard.html' : 'dashboard.html';
+        setTimeout(() => { window.location.href = redirectTo; }, 800);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        loginBtn.classList.remove('loading');
+        loginBtn.textContent = 'Sign In';
+      }
     });
 
     // Forgot password functionality

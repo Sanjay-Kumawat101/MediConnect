@@ -1,43 +1,41 @@
 // dashboard-script.js
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+  // API base resolver
+  window.__API_BASE = window.__API_BASE || (window.location.protocol === 'file:' ? 'http://localhost:4000' : '');
   updateUserInfo();
   showTab('dashboard');
+  loadDoctors();
+  loadAppointmentsForUser();
 });
 
 // Update user information
 function updateUserInfo() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  
-  if (currentUser.name) {
-    document.getElementById('userName').textContent = currentUser.name;
-    document.getElementById('userRole').textContent = currentUser.role || 'User';
-    
-    // Update profile information
-    if (document.getElementById('profileName')) {
-      document.getElementById('profileName').textContent = currentUser.name;
-    }
-    if (document.getElementById('profileRole')) {
-      document.getElementById('profileRole').textContent = currentUser.role || 'User';
-    }
-    
-    // Populate profile form
-    if (document.getElementById('profileFullName')) {
-      document.getElementById('profileFullName').value = currentUser.name || '';
-    }
-    if (document.getElementById('profileEmail')) {
-      document.getElementById('profileEmail').value = currentUser.email || '';
-    }
-    if (document.getElementById('profilePhone')) {
-      document.getElementById('profilePhone').value = currentUser.phone || '';
-    }
-    if (document.getElementById('profileDOB')) {
-      document.getElementById('profileDOB').value = currentUser.dob || '';
-    }
-  } else {
-    // Redirect to registration if no user data
+  const token = sessionStorage.getItem('mc_token');
+  const storedUser = JSON.parse(sessionStorage.getItem('mc_user') || '{}');
+  if (!token || !storedUser?.id) {
     window.location.href = 'index.html';
+    return;
   }
+  // Populate basic header immediately
+  document.getElementById('userName').textContent = storedUser.name || 'User';
+  document.getElementById('userRole').textContent = storedUser.role || 'User';
+
+  // Fetch fresh profile from backend
+  fetch(`${window.__API_BASE}/api/users/${storedUser.id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(user => {
+      if (!user || user.error) return;
+      if (document.getElementById('profileName')) document.getElementById('profileName').textContent = user.name || '';
+      if (document.getElementById('profileRole')) document.getElementById('profileRole').textContent = user.role || 'User';
+      if (document.getElementById('profileFullName')) document.getElementById('profileFullName').value = user.name || '';
+      if (document.getElementById('profileEmail')) document.getElementById('profileEmail').value = user.email || '';
+      if (document.getElementById('profilePhone')) document.getElementById('profilePhone').value = user.phone || '';
+      if (document.getElementById('profileDOB')) document.getElementById('profileDOB').value = user.dob || '';
+    })
+    .catch(() => {});
 }
 
 // Navigation functionality
@@ -89,6 +87,64 @@ function toggleSidebar() {
   overlay.classList.toggle('show');
 }
 
+// Load registered doctors into booking select
+function loadDoctors() {
+  const token = sessionStorage.getItem('mc_token');
+  const select = document.getElementById('doctorSelect');
+  if (!select || !token) return;
+  fetch(`${window.__API_BASE}/api/users?role=doctor`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(list => {
+      select.innerHTML = '<option value="">Choose a doctor</option>';
+      (list || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name}${d.gender ? ' • ' + d.gender : ''}`;
+        select.appendChild(opt);
+      });
+    })
+    .catch(() => {});
+}
+
+// Load appointments for current user and render dynamically
+function loadAppointmentsForUser() {
+  const token = sessionStorage.getItem('mc_token');
+  const user = JSON.parse(sessionStorage.getItem('mc_user') || '{}');
+  const container = document.getElementById('appointmentsList');
+  if (!token || !user?.id || !container) return;
+  fetch(`${window.__API_BASE}/api/appointments`, { headers: { Authorization: `Bearer ${token}` }})
+    .then(r => r.json())
+    .then(list => {
+      container.innerHTML = '';
+      (list || [])
+        .filter(a => a.user_id === user.id)
+        .forEach(a => {
+          const card = document.createElement('div');
+          const statusClass = a.status === 'upcoming' ? 'status-upcoming' : a.status === 'cancelled' ? 'status-cancelled' : '';
+          card.className = `appointment-card ${a.status}`;
+          card.innerHTML = `
+            <div class="appointment-left">
+              <div class="doctor-avatar"><span>👨‍⚕️</span></div>
+              <div class="appointment-details">
+                <div class="doctor-name">Doctor: ${a.doctor_id}</div>
+                <div class="appointment-reason">${a.reason || ''}</div>
+              </div>
+            </div>
+            <div class="appointment-right">
+              <div class="appointment-time">
+                <div class="date">${a.date}</div>
+                <div class="time">${a.time}</div>
+              </div>
+              <div class="appointment-status ${statusClass}">${a.status}</div>
+            </div>`;
+          container.appendChild(card);
+        });
+    })
+    .catch(() => {});
+}
+
 // Modal functions
 function bookAppointment() {
   document.getElementById('appointmentModal').classList.add('show');
@@ -116,7 +172,8 @@ document.addEventListener('click', function(e) {
 // Logout function
 function logout() {
   if (confirm('Are you sure you want to logout?')) {
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('mc_token');
+    sessionStorage.removeItem('mc_user');
     window.location.href = 'index.html';
   }
 }
@@ -164,21 +221,38 @@ function viewReport(id) {
 
 // Profile form submission
 document.addEventListener('DOMContentLoaded', function() {
+  const token = sessionStorage.getItem('mc_token');
+  const currentUser = JSON.parse(sessionStorage.getItem('mc_user') || '{}');
   const profileForm = document.getElementById('profileForm');
   if (profileForm) {
     profileForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      
-      // Update user data
-      currentUser.name = document.getElementById('profileFullName').value;
-      currentUser.email = document.getElementById('profileEmail').value;
-      currentUser.phone = document.getElementById('profilePhone').value;
-      currentUser.dob = document.getElementById('profileDOB').value;
-      
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      updateUserInfo();
-      alert('Profile updated successfully!');
+      const updates = {
+        name: document.getElementById('profileFullName').value,
+        email: document.getElementById('profileEmail').value,
+        phone: document.getElementById('profilePhone').value,
+        dob: document.getElementById('profileDOB').value
+      };
+      // client-side phone validation (India formats and 10-digit plain)
+      const phoneVal = (updates.phone || '').trim();
+      const isValidPhone = /^(\+91[6-9]\d{9}|0[6-9]\d{9}|[6-9]\d{9})$/.test(phoneVal);
+      if (!isValidPhone) {
+        alert('Please enter a valid phone number');
+        return;
+      }
+      fetch(`${window.__API_BASE}/api/users/${currentUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(updates)
+      }).then(r => r.json()).then(u => {
+        if (u && !u.error) {
+          sessionStorage.setItem('mc_user', JSON.stringify(u));
+          updateUserInfo();
+          alert('Profile updated successfully!');
+        } else {
+          alert(u.error || 'Update failed');
+        }
+      }).catch(() => alert('Update failed'));
     });
   }
   
@@ -212,9 +286,22 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Cannot book appointment more than 3 months in advance.');
         return;
       }
-      
-      alert('Appointment booking functionality would be implemented here.');
-      closeModal('appointmentModal');
+      const user = JSON.parse(sessionStorage.getItem('mc_user') || '{}');
+      const doctorId = document.getElementById('doctorSelect').value || 'unknown';
+      const time = document.getElementById('appointmentTime').value;
+      const reason = document.getElementById('appointmentReason').value;
+      fetch(`${window.__API_BASE}/api/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: user.id, doctorId, date: appointmentDate, time, reason })
+      }).then(r => r.json()).then(resp => {
+        if (resp && !resp.error) {
+          alert('Appointment booked successfully!');
+          closeModal('appointmentModal');
+        } else {
+          alert(resp.error || 'Booking failed');
+        }
+      }).catch(() => alert('Booking failed'));
     });
   }
 });
