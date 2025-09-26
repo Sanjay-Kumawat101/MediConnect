@@ -187,13 +187,16 @@ window.addEventListener('resize', function() {
 });
 
 // Additional functions for dashboard functionality
-function filterAppointments(filter) {
+function filterAppointments(filter, evt) {
   const appointmentCards = document.querySelectorAll('.appointment-card');
   const filterButtons = document.querySelectorAll('.filter-btn');
   
   // Update filter buttons
   filterButtons.forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+  const eventObj = evt || window.event;
+  if (eventObj && eventObj.target) {
+    eventObj.target.classList.add('active');
+  }
   
   // Filter appointments
   appointmentCards.forEach(card => {
@@ -307,13 +310,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Medical Records Functions
-function filterRecords(filter) {
+function filterRecords(filter, evt) {
   const recordCards = document.querySelectorAll('.record-card');
   const filterButtons = document.querySelectorAll('.medical-records-filters .filter-btn');
   
   // Update filter buttons
   filterButtons.forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+  const eventObj = evt || window.event;
+  if (eventObj && eventObj.target) {
+    eventObj.target.classList.add('active');
+  }
   
   // Filter records
   recordCards.forEach(card => {
