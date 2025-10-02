@@ -9,6 +9,7 @@ import recordsRouter from './routes/records.js';
 import alertsRouter from './routes/alerts.js';
 import { requireAuth } from './middleware/auth.js';
 import availabilityRouter from './routes/availability.js';
+import healthAssessmentsRouter from './routes/healthAssessments.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +32,7 @@ app.use('/api/appointments', requireAuth, appointmentsRouter);
 app.use('/api/records', requireAuth, recordsRouter);
 app.use('/api/alerts', requireAuth, alertsRouter);
 app.use('/api/availability', requireAuth, availabilityRouter);
+app.use('/api/health-assessments', requireAuth, healthAssessmentsRouter);
 
 // Serve frontend (optional if running separately)
 const frontendDir = path.resolve(__dirname, '../../frontend');

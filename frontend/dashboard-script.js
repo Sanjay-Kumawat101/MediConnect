@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   showTab('dashboard');
   loadDoctors();
   loadAppointmentsForUser();
+  loadDashboardStats();
 });
 
 // Update user information
@@ -118,29 +119,30 @@ function loadAppointmentsForUser() {
     .then(r => r.json())
     .then(list => {
       container.innerHTML = '';
-      (list || [])
-        .filter(a => a.user_id === user.id)
-        .forEach(a => {
-          const card = document.createElement('div');
-          const statusClass = a.status === 'upcoming' ? 'status-upcoming' : a.status === 'cancelled' ? 'status-cancelled' : '';
-          card.className = `appointment-card ${a.status}`;
-          card.innerHTML = `
-            <div class="appointment-left">
-              <div class="doctor-avatar"><span>👨‍⚕️</span></div>
-              <div class="appointment-details">
-                <div class="doctor-name">Doctor: ${a.doctor_id}</div>
-                <div class="appointment-reason">${a.reason || ''}</div>
-              </div>
+      const userAppointments = (list || []).filter(a => a.user_id === user.id);
+      userAppointments.forEach(a => {
+        const card = document.createElement('div');
+        const statusClass = a.status === 'upcoming' ? 'status-upcoming' : a.status === 'cancelled' ? 'status-cancelled' : '';
+        card.className = `appointment-card ${a.status}`;
+        card.innerHTML = `
+          <div class="appointment-left">
+            <div class="doctor-avatar"><span>👨‍⚕️</span></div>
+            <div class="appointment-details">
+              <div class="doctor-name">Doctor: ${a.doctor_id}</div>
+              <div class="appointment-reason">${a.reason || ''}</div>
             </div>
-            <div class="appointment-right">
-              <div class="appointment-time">
-                <div class="date">${a.date}</div>
-                <div class="time">${a.time}</div>
-              </div>
-              <div class="appointment-status ${statusClass}">${a.status}</div>
-            </div>`;
-          container.appendChild(card);
-        });
+          </div>
+          <div class="appointment-right">
+            <div class="appointment-time">
+              <div class="date">${a.date}</div>
+              <div class="time">${a.time}</div>
+            </div>
+            <div class="appointment-status ${statusClass}">${a.status}</div>
+          </div>`;
+        container.appendChild(card);
+      });
+      // Update appointment stats
+      updateAppointmentStats(userAppointments);
     })
     .catch(() => {});
 }
@@ -345,7 +347,10 @@ function startSymptomAnalysis() {
 }
 
 function startRiskAssessment() {
-  alert('Health risk assessment functionality would be implemented here.');
+  // Show modal
+  document.getElementById('riskAssessmentModal').classList.add('show');
+  renderRiskQuestions();
+  document.getElementById('riskResult').style.display = 'none';
 }
 
 function getRecommendations() {
@@ -369,8 +374,293 @@ function viewResults(id) {
   alert(`View results for alert ${id} functionality would be implemented here.`);
 }
 
+// Load dashboard statistics
+function loadDashboardStats() {
+  const token = sessionStorage.getItem('mc_token');
+  if (!token) return;
+
+  // Load alerts count
+  fetch(`${window.__API_BASE}/api/alerts`, { headers: { Authorization: `Bearer ${token}` }})
+    .then(r => r.json())
+    .then(alerts => {
+      const alertsArray = alerts || [];
+      const activeAlerts = alertsArray.length;
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weekAlerts = alertsArray.filter(a => new Date(a.created_at) >= weekAgo).length;
+      const urgentAlerts = alertsArray.filter(a => a.severity === 'urgent' || a.severity === 'warning').length;
+      
+      document.getElementById('activeAlertsCount').textContent = activeAlerts;
+      document.getElementById('alertStatsActive').textContent = activeAlerts;
+      document.getElementById('alertStatsWeek').textContent = weekAlerts;
+      document.getElementById('alertStatsUrgent').textContent = urgentAlerts;
+    })
+    .catch(() => {});
+
+  // Medical records count (placeholder - you can implement this if you have a records endpoint)
+  document.getElementById('medicalRecordsCount').textContent = '0';
+}
+
+// Update appointment statistics
+function updateAppointmentStats(appointments) {
+  const upcoming = appointments.filter(a => a.status === 'upcoming' || a.status === 'pending').length;
+  const completed = appointments.filter(a => a.status === 'completed').length;
+  const cancelled = appointments.filter(a => a.status === 'cancelled').length;
+
+  // Update dashboard card
+  document.getElementById('upcomingAppointmentsCount').textContent = upcoming;
+  
+  // Update appointment stats section
+  document.getElementById('appointmentStatsUpcoming').textContent = upcoming;
+  document.getElementById('appointmentStatsCompleted').textContent = completed;
+  document.getElementById('appointmentStatsCancelled').textContent = cancelled;
+}
+
 // Simulate real-time updates
 setInterval(function() {
   const timeElements = document.querySelectorAll('.activity-time');
   // In a real application, this would update with actual timestamps
 }, 60000);
+
+// Improved 15 health risk questions with types and clear labels
+const riskQuestions = [
+  { text: 'How many days per week do you engage in at least 30 minutes of physical activity?', type: 'number', min: 0, max: 7 },
+  { text: 'Do you smoke any tobacco products?', type: 'yesno' },
+  { text: 'On average, how many servings of fruits and vegetables do you eat per day?', type: 'number', min: 0, max: 10 },
+  { text: 'How many hours of sleep do you get per night?', type: 'number', min: 0, max: 24 },
+  { text: 'Do you consume alcohol?', type: 'yesno' },
+  { text: 'How often do you feel stressed or anxious?', type: 'rating', labels: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'] },
+  { text: 'Do you have any diagnosed chronic conditions (e.g., diabetes, hypertension, asthma)?', type: 'yesno' },
+  { text: 'How often do you eat fast food or processed snacks?', type: 'rating', labels: ['Never', 'Rarely', 'Sometimes', 'Often', 'Daily'] },
+  { text: 'How many glasses of water do you drink per day?', type: 'number', min: 0, max: 20 },
+  { text: 'Do you use recreational drugs?', type: 'yesno' },
+  { text: 'How often do you have a medical checkup (including blood pressure, cholesterol, etc.)?', type: 'rating', labels: ['Never', 'Rarely', 'Every few years', 'Every 1-2 years', 'Yearly'] },
+  { text: 'Do you have a family history of heart disease, stroke, or cancer?', type: 'yesno' },
+  { text: 'How would you rate your current mental health?', type: 'rating', labels: ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'] },
+  { text: 'Do you experience unexplained pain, fatigue, or other symptoms regularly?', type: 'yesno' },
+  { text: 'How would you rate your overall health?', type: 'rating', labels: ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'] }
+];
+
+function renderRiskQuestions() {
+  const container = document.getElementById('riskQuestions');
+  container.innerHTML = '';
+  riskQuestions.forEach((q, i) => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'form-group';
+    let inputHtml = '';
+    if (q.type === 'rating') {
+      inputHtml = `<div class="risk-rating-group">\n` +
+        [1,2,3,4,5].map(val => `
+          <label class="risk-rating-label">
+            <input type="radio" name="riskQ${i}" value="${val}" required>
+            <span>${val}</span>
+            <div style='font-size:11px;color:#555;'>${q.labels ? q.labels[val-1] : ''}</div>
+          </label>
+        `).join('') +
+      `</div>`;
+    } else if (q.type === 'yesno') {
+      inputHtml = `<div class="risk-yesno-group">\n` +
+        `<label><input type="radio" name="riskQ${i}" value="yes" required> Yes</label>\n` +
+        `<label><input type="radio" name="riskQ${i}" value="no" required> No</label>\n` +
+      `</div>`;
+    } else if (q.type === 'number') {
+      inputHtml = `<input type="number" name="riskQ${i}" min="${q.min}" max="${q.max}" required style="width:120px;">`;
+    }
+    qDiv.innerHTML = `<label>Q${i+1}. ${q.text}</label>${inputHtml}`;
+    container.appendChild(qDiv);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const riskForm = document.getElementById('riskAssessmentForm');
+  if (riskForm) {
+    riskForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      let total = 0;
+      let answered = 0;
+      for (let i = 0; i < riskQuestions.length; i++) {
+        const q = riskQuestions[i];
+        let val = null;
+        if (q.type === 'rating') {
+          const el = riskForm.querySelector(`input[name="riskQ${i}"]:checked`);
+          if (el) {
+            val = parseInt(el.value);
+            // For positive ratings (e.g., mental health, overall health, checkups): higher is better
+            // For negative ratings (e.g., stress, fast food): lower is better
+            if (q.text.toLowerCase().includes('stress') || q.text.toLowerCase().includes('fast food')) {
+              total += (6 - val); // 5=worst, 1=best
+            } else {
+              total += val; // 5=best, 1=worst
+            }
+            answered++;
+          }
+        } else if (q.type === 'yesno') {
+          const el = riskForm.querySelector(`input[name="riskQ${i}"]:checked`);
+          if (el) {
+            // For risk questions, 'no' is healthy (score 5), 'yes' is risky (score 1)
+            // For family history, chronic, smoking, alcohol, drugs, pain, etc.
+            if (
+              q.text.toLowerCase().includes('smoke') ||
+              q.text.toLowerCase().includes('alcohol') ||
+              q.text.toLowerCase().includes('chronic') ||
+              q.text.toLowerCase().includes('drugs') ||
+              q.text.toLowerCase().includes('pain') ||
+              q.text.toLowerCase().includes('family history')
+            ) {
+              total += (el.value === 'no' ? 5 : 1);
+            } else {
+              // If ever a positive yes/no (not present now), treat 'yes' as healthy
+              total += (el.value === 'yes' ? 5 : 1);
+            }
+            answered++;
+          }
+        } else if (q.type === 'number') {
+          const el = riskForm.querySelector(`input[name="riskQ${i}"]`);
+          if (el && el.value !== '') {
+            val = parseFloat(el.value);
+            // Custom logic for each number question
+            if (q.text.toLowerCase().includes('physical activity')) {
+              // 7 days = 5, 5-6 = 4, 3-4 = 3, 1-2 = 2, 0 = 1
+              if (val >= 7) total += 5;
+              else if (val >= 5) total += 4;
+              else if (val >= 3) total += 3;
+              else if (val >= 1) total += 2;
+              else total += 1;
+            } else if (q.text.toLowerCase().includes('fruits and vegetables')) {
+              // 5+ = 5, 3-4 = 4, 2 = 3, 1 = 2, 0 = 1
+              if (val >= 5) total += 5;
+              else if (val >= 3) total += 4;
+              else if (val == 2) total += 3;
+              else if (val == 1) total += 2;
+              else total += 1;
+            } else if (q.text.toLowerCase().includes('sleep')) {
+              // 7-9 = 5, 6 or 10 = 4, 5 or 11 = 3, 4 or 12 = 2, else 1
+              if (val >= 7 && val <= 9) total += 5;
+              else if (val == 6 || val == 10) total += 4;
+              else if (val == 5 || val == 11) total += 3;
+              else if (val == 4 || val == 12) total += 2;
+              else total += 1;
+            } else if (q.text.toLowerCase().includes('water')) {
+              // 8+ = 5, 6-7 = 4, 4-5 = 3, 2-3 = 2, 0-1 = 1
+              if (val >= 8) total += 5;
+              else if (val >= 6) total += 4;
+              else if (val >= 4) total += 3;
+              else if (val >= 2) total += 2;
+              else total += 1;
+            } else {
+              // Default: mid-range is best
+              total += 3;
+            }
+            answered++;
+          }
+        }
+      }
+      if (answered < riskQuestions.length) {
+        alert('Please answer all questions.');
+        return;
+      }
+      // Calculate result
+      let maxScore = 5 * riskQuestions.length;
+      // Normalize score to 100
+      let score = Math.round((total / maxScore) * 100);
+      let result = '';
+      let tip = '';
+      if (score < 50) {
+        result = '<span style="color:#e53e3e;font-weight:bold;">High Risk</span> - Please consult a healthcare professional soon.';
+        tip = 'Consider scheduling a checkup and adopting healthier habits like regular exercise and a balanced diet.';
+      } else if (score < 80) {
+        result = '<span style="color:#d69e2e;font-weight:bold;">Moderate Risk</span> - Consider lifestyle improvements.';
+        tip = 'Try to improve your sleep, reduce stress, and eat more whole foods.';
+      } else {
+        result = '<span style="color:#38a169;font-weight:bold;">Low Risk</span> - Keep up the good habits!';
+        tip = 'Great job! Maintain your healthy lifestyle and get regular checkups.';
+      }
+      document.getElementById('riskResult').innerHTML = `<h4>Your Health Risk Result:</h4><div style='margin:10px 0;'>${result}</div><div>Total Score: ${score} / 100</div>`;
+      document.getElementById('riskResult').style.display = 'block';
+      // Show legend popup with tip and result
+      setTimeout(function() {
+        document.getElementById('healthTip').innerHTML = `<b>Health Tip:</b> ${tip}`;
+        document.getElementById('healthLegendModal').classList.add('show');
+        // Also show result in legend popup
+        document.querySelector('#healthLegendModal .modal-body').insertAdjacentHTML('afterbegin', `<div id='legendResult' style='margin-bottom:12px;font-size:16px;'><b>Result:</b> ${result} <br><b>Score:</b> ${score} / 100</div>`);
+        // Update Recent Analysis Results
+        document.getElementById('recentHealthScore').textContent = `Health Score: ${score}/100`;
+        document.getElementById('recentHealthDate').textContent = `Last checked: ${new Date().toLocaleString()}`;
+        document.getElementById('recentHealthSummary').innerHTML = `<div class='result-item'><span class='result-icon'>${score < 50 ? '⚠️' : score < 80 ? '❗' : '✅'}</span><span>${result.replace(/<[^>]+>/g, '')}</span></div>`;
+        // Store recent result in backend and localStorage
+        const token = sessionStorage.getItem('mc_token');
+        const details = {};
+        // Optionally store answers (for future use)
+        for (let i = 0; i < riskQuestions.length; i++) {
+          const q = riskQuestions[i];
+          let val = null;
+          if (q.type === 'rating') {
+            const el = riskForm.querySelector(`input[name="riskQ${i}"]:checked`);
+            if (el) val = parseInt(el.value);
+          } else if (q.type === 'yesno') {
+            const el = riskForm.querySelector(`input[name="riskQ${i}"]:checked`);
+            if (el) val = el.value;
+          } else if (q.type === 'number') {
+            const el = riskForm.querySelector(`input[name="riskQ${i}"]`);
+            if (el && el.value !== '') val = parseFloat(el.value);
+          }
+          details[`q${i+1}`] = val;
+        }
+        if (token) {
+          fetch(`${window.__API_BASE}/api/health-assessments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ score, result: result.replace(/<[^>]+>/g, ''), details })
+          }).then(r => r.json()).then(data => {
+            if (data && !data.error) {
+              localStorage.setItem('recentHealthResult', JSON.stringify({
+                score: data.score,
+                result: data.result,
+                date: data.created_at || new Date().toLocaleString()
+              }));
+            }
+          }).catch(() => {});
+        }
+      }, 800);
+    });
+  }
+});
+
+// Load recent health result from backend on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const token = sessionStorage.getItem('mc_token');
+  if (token) {
+    fetch(`${window.__API_BASE}/api/health-assessments/recent`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data && !data.error) {
+          document.getElementById('recentHealthScore').textContent = `Health Score: ${data.score}/100`;
+          document.getElementById('recentHealthDate').textContent = `Last checked: ${data.created_at ? new Date(data.created_at).toLocaleString() : '--'}`;
+          document.getElementById('recentHealthSummary').innerHTML = `<div class='result-item'><span class='result-icon'>${data.score < 50 ? '⚠️' : data.score < 80 ? '❗' : '✅'}</span><span>${data.result}</span></div>`;
+          // Update health risk level on dashboard
+          const riskLevel = data.score < 50 ? 'High Risk' : data.score < 80 ? 'Moderate' : 'Low Risk';
+          document.getElementById('healthRiskLevel').textContent = riskLevel;
+          // Also update localStorage for offline fallback
+          localStorage.setItem('recentHealthResult', JSON.stringify({
+            score: data.score,
+            result: data.result,
+            date: data.created_at || new Date().toLocaleString()
+          }));
+        }
+      })
+      .catch(() => {
+        // fallback to localStorage
+        const recent = localStorage.getItem('recentHealthResult');
+        if (recent) {
+          try {
+            const data = JSON.parse(recent);
+            document.getElementById('recentHealthScore').textContent = `Health Score: ${data.score}/100`;
+            document.getElementById('recentHealthDate').textContent = `Last checked: ${data.date}`;
+            document.getElementById('recentHealthSummary').innerHTML = `<div class='result-item'><span class='result-icon'>${data.score < 50 ? '⚠️' : data.score < 80 ? '❗' : '✅'}</span><span>${data.result}</span></div>`;
+          } catch {}
+        }
+      });
+  }
+});
