@@ -416,6 +416,56 @@ function updateAppointmentStats(appointments) {
   document.getElementById('appointmentStatsCancelled').textContent = cancelled;
 }
 
+// Government Scheme Website Redirects
+function openSchemeWebsite(schemeType) {
+  const schemeUrls = {
+    // Ayushman Bharat (PM-JAY) - Updated URLs
+    'ayushman-bharat': 'https://www.pmjay.gov.in/',
+    'ayushman-bharat-eligibility': 'https://www.pmjay.gov.in/am-i-eligible',
+    
+    // CGHS - Updated URLs
+    'cghs': 'https://cghs.nic.in/',
+    'cghs-apply': 'https://cghs.nic.in/cghs/registration',
+    
+    // ESI Scheme - Updated URLs
+    'esi-register': 'https://www.esic.in/registration',
+    'esi-hospitals': 'https://www.esic.in/find-doctor-hospital',
+    
+    // Janani Suraksha Yojana - Updated URLs
+    'jsy-apply': 'https://nhm.gov.in/index4.php?lang=1&level=0&linkid=151&lid=155',
+    'jsy-guidelines': 'https://nhm.gov.in/New_Updates_2018/NHM_Components/RMNCH_MH_Guidelines/Janani_Suraksha_Yojana.html'
+  };
+  
+  const url = schemeUrls[schemeType];
+  if (url) {
+    // Add error handling for failed redirects
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Failed to open scheme website:', error);
+      alert('Unable to open the website. Please try again later or visit the official government website directly.');
+    }
+  } else {
+    alert('Website information not available for this scheme. Please visit the official government portal for more information.');
+  }
+}
+
+// Link Testing Function (for development/debugging)
+function testAllSchemeLinks() {
+  const schemeTypes = [
+    'ayushman-bharat', 'ayushman-bharat-eligibility',
+    'cghs', 'cghs-apply',
+    'esi-register', 'esi-hospitals',
+    'jsy-apply', 'jsy-guidelines'
+  ];
+  
+  console.log('Testing all government scheme links...');
+  schemeTypes.forEach(type => {
+    console.log(`Testing ${type}...`);
+    // This would be used for manual testing
+  });
+}
+
 // Simulate real-time updates
 setInterval(function() {
   const timeElements = document.querySelectorAll('.activity-time');
