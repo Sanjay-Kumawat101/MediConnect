@@ -54,9 +54,9 @@
           <span class="nav-icon">📋</span>
           <span>Medical Records</span>
         </a>
-        <a class="nav-item" data-tab="ai-prediction">
+        <a class="nav-item" data-tab="health-check">
           <span class="nav-icon">🤖</span>
-          <span>AI Health Check</span>
+          <span>Health Check</span>
         </a>
         <a class="nav-item" data-tab="health-alerts">
           <span class="nav-icon">🔔</span>
@@ -91,7 +91,7 @@
             <span>🔍</span>
             Search
           </button>
-          <button class="action-btn btn-primary" onclick="OpenBookingModal()">
+          <button class="action-btn btn-primary" onclick="openBookingModal()">
             <span>📅</span>
             Book Appointment
           </button>
@@ -124,7 +124,7 @@
             <div class="card-content">
               <div class="stat-number" id="healthRiskLevel">--</div>
               <div class="stat-label">Health Risk Level</div>
-              <button class="card-action" onclick="showTab('ai-prediction')">Check Health</button>
+              <button class="card-action" onclick="showTab('health-check')">Check Health</button>
             </div>
           </div>
 
@@ -404,81 +404,44 @@
           <button class="filter-btn" onclick="filterRecords('other')">Other</button>
         </div>
 
-        <div class="medical-records-list">
-          <div class="record-card lab">
-            <div class="record-icon">🧪</div>
-            <div class="record-details">
-              <div class="record-title">Blood Test Report</div>
-              <div class="record-date">Dec 20, 2024</div>
-              <div class="record-type">Lab Report</div>
-            </div>
-            <div class="record-actions">
-              <button class="action-btn-small btn-secondary" onclick="viewRecord(1)">View</button>
-              <button class="action-btn-small btn-primary" onclick="shareRecord(1)">Share</button>
-            </div>
-          </div>
-
-          <div class="record-card prescription">
-            <div class="record-icon">💊</div>
-            <div class="record-details">
-              <div class="record-title">Prescription - Dr. Smith</div>
-              <div class="record-date">Dec 18, 2024</div>
-              <div class="record-type">Prescription</div>
-            </div>
-            <div class="record-actions">
-              <button class="action-btn-small btn-secondary" onclick="viewRecord(2)">View</button>
-              <button class="action-btn-small btn-primary" onclick="shareRecord(2)">Share</button>
-            </div>
-          </div>
-
-          <div class="record-card scan">
-            <div class="record-icon">📷</div>
-            <div class="record-details">
-              <div class="record-title">X-Ray Chest</div>
-              <div class="record-date">Dec 15, 2024</div>
-              <div class="record-type">Scan & Image</div>
-            </div>
-            <div class="record-actions">
-              <button class="action-btn-small btn-secondary" onclick="viewRecord(3)">View</button>
-              <button class="action-btn-small btn-primary" onclick="shareRecord(3)">Share</button>
-            </div>
-          </div>
+        <div class="medical-records-list" id="medicalRecordsList">
+          <!-- Dynamic records will be loaded here -->
         </div>
       </div>
 
-      <!-- AI Health Checkup Content -->
-      <div id="ai-predictionContent" class="tab-content">
-        <div class="ai-health-header">
+      <!-- Health Checkup Content -->
+      <div id="health-checkContent" class="tab-content">
+        <div class="health-header">
           <div class="section-title">
             <span>🤖</span>
-            AI Health Checkup
+            Health Checkup
           </div>
           <div class="ai-status">
             <div class="status-indicator healthy">Healthy</div>
           </div>
         </div>
 
-        <div class="ai-health-cards">
-          <div class="ai-card">
-            <div class="ai-card-header">
-              <div class="ai-card-icon">🔍</div>
-              <div class="ai-card-title">Symptom Analysis</div>
+        <div class="health-cards">
+          <div class="health-card">
+            <div class="health-card-header">
+              <div class="health-card-icon">🔍</div>
+              <div class="health-card-title">Symptom Analysis</div>
             </div>
-            <div class="ai-card-content">
-              <p>Describe your symptoms and get AI-powered analysis</p>
-              <button class="action-btn btn-primary" onclick="startSymptomAnalysis()">
+            <div class="health-card-content">
+              <p>Describe your symptoms and get health guidance</p>
+              <button class="action-btn btn-primary" onclick="openSymptomAnalysisModal()">
                 <span>🔍</span>
                 Start Analysis
               </button>
             </div>
           </div>
 
-          <div class="ai-card">
-            <div class="ai-card-header">
-              <div class="ai-card-icon">📊</div>
-              <div class="ai-card-title">Health Risk Assessment</div>
+          <div class="health-card">
+            <div class="health-card-header">
+              <div class="health-card-icon">📊</div>
+              <div class="health-card-title">Health Risk Assessment</div>
             </div>
-            <div class="ai-card-content">
+            <div class="health-card-content">
               <p>Complete a comprehensive health questionnaire</p>
               <button class="action-btn btn-primary" onclick="startRiskAssessment()">
                 <span>📊</span>
@@ -487,12 +450,12 @@
             </div>
           </div>
 
-          <div class="ai-card">
-            <div class="ai-card-header">
-              <div class="ai-card-icon">💡</div>
-              <div class="ai-card-title">Health Recommendations</div>
+          <div class="health-card">
+            <div class="health-card-header">
+              <div class="health-card-icon">💡</div>
+              <div class="health-card-title">Health Recommendations</div>
             </div>
-            <div class="ai-card-content">
+            <div class="health-card-content">
               <p>Get personalized health tips and recommendations</p>
               <button class="action-btn btn-primary" onclick="getRecommendations()">
                 <span>💡</span>
@@ -502,7 +465,7 @@
           </div>
         </div>
 
-        <div class="ai-results">
+        <div class="health-results">
           <div class="section-title">
             <span>📈</span>
             Recent Analysis Results
@@ -724,6 +687,84 @@
         <li><span style="color:#e53e3e;font-weight:bold;">0-49</span> – High Risk (Consult Doctor)</li>
       </ul>
       <div id="healthTip" style="margin-top:18px;font-size:15px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Symptom Analysis Modal -->
+<div class="modal" id="symptomAnalysisModal">
+  <div class="modal-content" style="max-width: 520px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Symptom Analysis</h3>
+      <button class="close-btn" onclick="closeModal('symptomAnalysisModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="symptomAnalysisForm">
+        <div class="form-group">
+          <label for="symptomInput">Describe your symptoms</label>
+          <textarea id="symptomInput" rows="5" style="width:100%;padding:12px 16px;border-radius:8px;border:2px solid #e2e8f0;font-size:16px;resize:vertical;" placeholder="E.g. I have a headache and mild fever for 2 days..." required></textarea>
+        </div>
+        <button type="submit" class="action-btn btn-primary" style="width:100%;margin-top:10px;">
+          <span>🔍</span> Analyze Symptoms
+        </button>
+      </form>
+      <div id="symptomAnalysisResult" style="display:none;margin-top:18px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Medical Record Modal -->
+<div class="modal" id="uploadRecordModal">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Upload Medical Record</h3>
+      <button class="close-btn" onclick="closeModal('uploadRecordModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="uploadRecordForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="recordTitle">Record Title *</label>
+          <input type="text" id="recordTitle" placeholder="e.g., Blood Test Report, X-Ray Chest" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="recordType">Record Type *</label>
+          <select id="recordType" required>
+            <option value="">Select type</option>
+            <option value="lab">Lab Report</option>
+            <option value="prescription">Prescription</option>
+            <option value="scan">Scan & Image</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="doctorName">Doctor Name</label>
+          <input type="text" id="doctorName" placeholder="e.g., Dr. Smith">
+        </div>
+        
+        <div class="form-group">
+          <label for="recordDate">Record Date</label>
+          <input type="date" id="recordDate">
+        </div>
+        
+        <div class="form-group">
+          <label for="recordDescription">Description</label>
+          <textarea id="recordDescription" rows="3" placeholder="Additional notes about this record"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="recordFile">Upload File *</label>
+          <input type="file" id="recordFile" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.txt" required>
+          <small style="color: #718096; margin-top: 5px; display: block;">
+            Supported formats: PDF, Images (JPG, PNG, GIF), Documents (DOC, DOCX), Text files. Max size: 10MB
+          </small>
+        </div>
+        
+        <button type="submit" class="action-btn btn-primary" style="width: 100%;">
+          <span>📤</span> Upload Record
+        </button>
+      </form>
     </div>
   </div>
 </div>

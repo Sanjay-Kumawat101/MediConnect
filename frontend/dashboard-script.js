@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadDoctors();
   loadAppointmentsForUser();
   loadDashboardStats();
+  loadMedicalRecords();
 });
 
 // Update user information
@@ -157,7 +158,9 @@ function openBookingModal() {
 }
 
 function uploadRecord() {
-  alert('Upload record functionality would open a file picker here.');
+  document.getElementById('uploadRecordModal').classList.add('show');
+  // Reset form
+  document.getElementById('uploadRecordForm').reset();
 }
 
 function closeModal(modalId) {
@@ -312,6 +315,107 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Medical Records Functions
+function loadMedicalRecords() {
+  const token = sessionStorage.getItem('mc_token');
+  const container = document.getElementById('medicalRecordsList');
+  
+  if (!token || !container) return;
+  
+  fetch(`${window.__API_BASE}/api/records`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(records => {
+      container.innerHTML = '';
+      if (records && records.length > 0) {
+        records.forEach(record => {
+          const card = createRecordCard(record);
+          container.appendChild(card);
+        });
+      } else {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #718096;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+            <h3>No medical records yet</h3>
+            <p>Upload your first medical record to get started</p>
+            <button class="action-btn btn-primary" onclick="uploadRecord()" style="margin-top: 16px;">
+              <span>📤</span> Upload Record
+            </button>
+          </div>
+        `;
+      }
+      updateMedicalRecordsStats(records || []);
+    })
+    .catch(() => {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #e53e3e;">
+          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+          <h3>Failed to load records</h3>
+          <p>Please try again later</p>
+        </div>
+      `;
+    });
+}
+
+function createRecordCard(record) {
+  const card = document.createElement('div');
+  card.className = `record-card ${record.type}`;
+  
+  const typeIcons = {
+    'lab': '🧪',
+    'prescription': '💊',
+    'scan': '📷',
+    'other': '📄'
+  };
+  
+  const typeLabels = {
+    'lab': 'Lab Report',
+    'prescription': 'Prescription',
+    'scan': 'Scan & Image',
+    'other': 'Other'
+  };
+  
+  const recordDate = record.record_date ? new Date(record.record_date).toLocaleDateString('en-IN') : 
+                    new Date(record.created_at).toLocaleDateString('en-IN');
+  
+  card.innerHTML = `
+    <div class="record-icon">${typeIcons[record.type] || '📄'}</div>
+    <div class="record-details">
+      <div class="record-title">${record.title}</div>
+      <div class="record-date">${recordDate}</div>
+      <div class="record-type">${typeLabels[record.type] || 'Other'}</div>
+      ${record.doctor_name ? `<div class="record-doctor">Dr. ${record.doctor_name}</div>` : ''}
+      ${record.description ? `<div class="record-description">${record.description}</div>` : ''}
+    </div>
+    <div class="record-actions">
+      <button class="action-btn-small btn-secondary" onclick="viewRecord('${record.id}')">View</button>
+      <button class="action-btn-small btn-primary" onclick="downloadRecord('${record.id}')">Download</button>
+      <button class="action-btn-small btn-danger" onclick="deleteRecord('${record.id}')">Delete</button>
+    </div>
+  `;
+  
+  return card;
+}
+
+function updateMedicalRecordsStats(records) {
+  const stats = {
+    total: records.length,
+    recent: records.filter(record => {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return new Date(record.created_at) >= weekAgo;
+    }).length,
+    byType: {}
+  };
+  
+  records.forEach(record => {
+    stats.byType[record.type] = (stats.byType[record.type] || 0) + 1;
+  });
+  
+  // Update dashboard stats
+  document.getElementById('medicalRecordsCount').textContent = stats.total;
+}
+
 function filterRecords(filter, evt) {
   const recordCards = document.querySelectorAll('.record-card');
   const filterButtons = document.querySelectorAll('.medical-records-filters .filter-btn');
@@ -334,16 +438,75 @@ function filterRecords(filter, evt) {
 }
 
 function viewRecord(id) {
-  alert(`View record ${id} functionality would be implemented here.`);
+  const token = sessionStorage.getItem('mc_token');
+  
+  fetch(`${window.__API_BASE}/api/records/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(record => {
+      if (record && !record.error) {
+        // Open the file in a new tab
+        window.open(`${window.__API_BASE}${record.file_path}`, '_blank');
+      } else {
+        alert('Failed to load record');
+      }
+    })
+    .catch(() => alert('Failed to load record'));
+}
+
+function downloadRecord(id) {
+  const token = sessionStorage.getItem('mc_token');
+  
+  fetch(`${window.__API_BASE}/api/records/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(record => {
+      if (record && !record.error) {
+        // Create download link
+        const link = document.createElement('a');
+        link.href = `${window.__API_BASE}${record.file_path}`;
+        link.download = record.original_name || record.title;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert('Failed to download record');
+      }
+    })
+    .catch(() => alert('Failed to download record'));
+}
+
+function deleteRecord(id) {
+  if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+    return;
+  }
+  
+  const token = sessionStorage.getItem('mc_token');
+  
+  fetch(`${window.__API_BASE}/api/records/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => {
+      if (r.ok) {
+        alert('Record deleted successfully');
+        loadMedicalRecords(); // Reload the list
+      } else {
+        alert('Failed to delete record');
+      }
+    })
+    .catch(() => alert('Failed to delete record'));
 }
 
 function shareRecord(id) {
   alert(`Share record ${id} functionality would be implemented here.`);
 }
 
-// AI Health Checkup Functions
+// Health Checkup Functions
 function startSymptomAnalysis() {
-  alert('Symptom analysis functionality would be implemented here.');
+  openSymptomAnalysisModal();
 }
 
 function startRiskAssessment() {
@@ -448,22 +611,6 @@ function openSchemeWebsite(schemeType) {
   } else {
     alert('Website information not available for this scheme. Please visit the official government portal for more information.');
   }
-}
-
-// Link Testing Function (for development/debugging)
-function testAllSchemeLinks() {
-  const schemeTypes = [
-    'ayushman-bharat', 'ayushman-bharat-eligibility',
-    'cghs', 'cghs-apply',
-    'esi-register', 'esi-hospitals',
-    'jsy-apply', 'jsy-guidelines'
-  ];
-  
-  console.log('Testing all government scheme links...');
-  schemeTypes.forEach(type => {
-    console.log(`Testing ${type}...`);
-    // This would be used for manual testing
-  });
 }
 
 // Simulate real-time updates
@@ -712,5 +859,52 @@ document.addEventListener('DOMContentLoaded', function() {
           } catch {}
         }
       });
+  }
+});
+
+// --- Symptom Analysis Modal Logic ---
+function openSymptomAnalysisModal() {
+  document.getElementById('symptomAnalysisModal').classList.add('show');
+  document.getElementById('symptomInput').value = '';
+  document.getElementById('symptomAnalysisResult').style.display = 'none';
+  document.getElementById('symptomAnalysisResult').innerHTML = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('symptomAnalysisForm');
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const textarea = document.getElementById('symptomInput');
+      const resultDiv = document.getElementById('symptomAnalysisResult');
+      const symptoms = textarea.value.trim();
+      if (!symptoms) {
+        textarea.classList.add('invalid');
+        return;
+      } else {
+        textarea.classList.remove('invalid');
+      }
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<span style="color:#667eea;">Analyzing symptoms, please wait...</span>';
+      try {
+        const token = sessionStorage.getItem('mc_token');
+        const resp = await fetch(`${window.__API_BASE}/api/health-assessments/symptom-analysis`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ symptoms })
+        });
+        const data = await resp.json();
+        if (resp.ok && data.analysis) {
+          resultDiv.innerHTML = `<div style='white-space:pre-line;font-size:16px;margin-bottom:8px;'>${data.analysis}</div><div style='color:#718096;font-size:13px;margin-top:8px;'>${data.disclaimer}</div>`;
+        } else {
+          resultDiv.innerHTML = `<span style='color:#e53e3e;'>${data.error || 'Failed to analyze symptoms.'}</span>`;
+        }
+      } catch (err) {
+        resultDiv.innerHTML = `<span style='color:#e53e3e;'>Network error. Please try again later.</span>`;
+      }
+    });
   }
 });

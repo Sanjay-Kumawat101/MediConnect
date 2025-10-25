@@ -1116,8 +1116,8 @@
       gap: 8px;
     }
 
-    /* AI Health Checkup Styles */
-    .ai-health-header {
+    /* Health Checkup Styles */
+    .health-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1142,14 +1142,14 @@
       color: #38a169;
     }
 
-    .ai-health-cards {
+    .health-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 25px;
       margin-bottom: 30px;
     }
 
-    .ai-card {
+    .health-card {
       background: white;
       border-radius: 16px;
       padding: 25px;
@@ -1157,19 +1157,19 @@
       transition: all 0.3s ease;
     }
 
-    .ai-card:hover {
+    .health-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     }
 
-    .ai-card-header {
+    .health-card-header {
       display: flex;
       align-items: center;
       gap: 15px;
       margin-bottom: 15px;
     }
 
-    .ai-card-icon {
+    .health-card-icon {
       width: 50px;
       height: 50px;
       background: linear-gradient(135deg, #667eea, #764ba2);
@@ -1181,19 +1181,19 @@
       color: white;
     }
 
-    .ai-card-title {
+    .health-card-title {
       font-size: 18px;
       font-weight: 600;
       color: #2d3748;
     }
 
-    .ai-card-content p {
+    .health-card-content p {
       color: #718096;
       margin-bottom: 20px;
       line-height: 1.5;
     }
 
-    .ai-results {
+    .health-results {
       background: white;
       border-radius: 20px;
       padding: 30px;

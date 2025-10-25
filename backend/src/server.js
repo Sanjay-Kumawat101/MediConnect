@@ -34,9 +34,12 @@ app.use('/api/alerts', requireAuth, alertsRouter);
 app.use('/api/availability', requireAuth, availabilityRouter);
 app.use('/api/health-assessments', requireAuth, healthAssessmentsRouter);
 
+// Serve uploaded files
+const uploadsDir = path.resolve(process.cwd(), 'backend/uploads');
+app.use('/uploads', express.static(uploadsDir));
+
 // Serve frontend (optional if running separately)
 const frontendDir = path.resolve(__dirname, '../../frontend');
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'backend/uploads')));
 app.use(express.static(frontendDir));
 
 app.listen(PORT, () => {
