@@ -584,19 +584,19 @@ function openSchemeWebsite(schemeType) {
   const schemeUrls = {
     // Ayushman Bharat (PM-JAY) - Updated URLs
     'ayushman-bharat': 'https://www.pmjay.gov.in/',
-    'ayushman-bharat-eligibility': 'https://www.pmjay.gov.in/am-i-eligible',
+    'ayushman-bharat-eligibility': 'https://beneficiary.nha.gov.in/',
     
     // CGHS - Updated URLs
-    'cghs': 'https://cghs.nic.in/',
-    'cghs-apply': 'https://cghs.nic.in/cghs/registration',
+    'cghs': 'https://www.cghs.mohfw.gov.in/AHIMSG5/hissso/Login',
+    'cghs-apply': 'https://www.cghs.mohfw.gov.in/AHIMSG5/hissso/Login',
     
     // ESI Scheme - Updated URLs
-    'esi-register': 'https://www.esic.in/registration',
-    'esi-hospitals': 'https://www.esic.in/find-doctor-hospital',
+    'esi-register': 'https://esic.gov.in/',
+    'esi-hospitals': 'https://esic.gov.in/information-benefits',
     
     // Janani Suraksha Yojana - Updated URLs
-    'jsy-apply': 'https://nhm.gov.in/index4.php?lang=1&level=0&linkid=151&lid=155',
-    'jsy-guidelines': 'https://nhm.gov.in/New_Updates_2018/NHM_Components/RMNCH_MH_Guidelines/Janani_Suraksha_Yojana.html'
+    'jsy-apply': 'https://nhm.gov.in/index1.php?lang=1&level=3&sublinkid=841&lid=309',
+    'jsy-guidelines': 'https://nhm.gov.in/WriteReadData/l892s/97827133331523438951.pdf'
   };
   
   const url = schemeUrls[schemeType];
