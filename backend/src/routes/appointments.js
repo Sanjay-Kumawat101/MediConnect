@@ -3,11 +3,14 @@ import { supabase } from '../lib/supabase.js';
 
 const router = Router();
 
+// GET appointments (optionally filter out completed by default)
 router.get('/', async (req, res) => {
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('*')
-    .order('date', { ascending: true });
+  let query = supabase.from('appointments').select('*').order('date', { ascending: true });
+  // By default, hide completed appointments unless requested
+  if (!req.query.showCompleted || req.query.showCompleted !== 'true') {
+    query = query.neq('status', 'completed');
+  }
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: 'Failed to fetch appointments' });
   res.json(data || []);
 });
@@ -58,6 +61,7 @@ router.post('/', async (req, res) => {
   res.status(201).json(data);
 });
 
+// PATCH appointment status, lock after cancelled/completed, allow only upcoming->completed
 router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body || {};
@@ -68,8 +72,19 @@ router.patch('/:id', async (req, res) => {
     .eq('id', id)
     .maybeSingle();
   if (!existing) return res.status(404).json({ error: 'Not found' });
-
   const prevStatus = existing.status;
+  const nextStatus = updates.status;
+  // Prevent updates if locked (cancelled, completed)
+  if (['cancelled', 'completed'].includes(prevStatus)) {
+    return res.status(403).json({ error: 'Appointment cannot be changed' });
+  }
+  // Once confirmed, only allow moving to completed
+  if (prevStatus === 'upcoming' && nextStatus && nextStatus !== 'completed') {
+    return res.status(403).json({ error: 'Only "Mark as Visited" allowed after confirmation' });
+  }
+  if (prevStatus !== 'upcoming' && nextStatus === 'completed') {
+    return res.status(403).json({ error: 'Only confirmed appointments can be marked completed' });
+  }
   const { data, error } = await supabase
     .from('appointments')
     .update(updates)
@@ -85,6 +100,8 @@ router.patch('/:id', async (req, res) => {
       message = `Your appointment on ${data.date} at ${data.time} was confirmed.`;
     } else if (updates.status === 'cancelled') {
       message = `Your appointment on ${data.date} at ${data.time} was cancelled.`;
+    } else if (updates.status === 'completed') {
+      message = `Your appointment on ${data.date} at ${data.time} is marked as completed.`;
     }
     if (message) {
       await supabase
@@ -93,7 +110,7 @@ router.patch('/:id', async (req, res) => {
           user_id: data.user_id,
           title: 'Appointment Update',
           message,
-          severity: updates.status === 'cancelled' ? 'warning' : 'info'
+          severity: updates.status === 'cancelled' ? 'warning' : 'info',
         });
     }
   }

@@ -59,9 +59,11 @@ function loadAppointments() {
       container.innerHTML = '';
       let pending = 0, upcoming = 0, cancelled = 0;
       (list || []).forEach(ap => {
+        if (ap.status === 'completed') return; // Hide completed
         if (ap.status === 'pending') pending++; else if (ap.status === 'upcoming') upcoming++; else if (ap.status === 'cancelled') cancelled++;
         const row = document.createElement('div');
         row.className = 'appointment-card';
+        const disableActions = ap.status !== 'pending';
         row.innerHTML = `
           <div class="appointment-left">
             <div class="doctor-avatar"><span>👤</span></div>
@@ -74,8 +76,8 @@ function loadAppointments() {
           <div class="appointment-right">
             <div class="appointment-status ${ap.status === 'upcoming' ? 'status-upcoming' : ap.status === 'cancelled' ? 'status-cancelled' : ''}">${ap.status}</div>
             <div class="appointment-actions">
-              <button class="action-btn-small btn-primary" data-action="confirm" data-id="${ap.id}">Confirm</button>
-              <button class="action-btn-small btn-danger" data-action="cancel" data-id="${ap.id}">Cancel</button>
+              <button class="action-btn-small btn-primary" data-action="confirm" data-id="${ap.id}" ${disableActions ? 'disabled' : ''}>Confirm</button>
+              <button class="action-btn-small btn-danger" data-action="cancel" data-id="${ap.id}" ${disableActions ? 'disabled' : ''}>Cancel</button>
             </div>
           </div>`;
         container.appendChild(row);

@@ -120,11 +120,15 @@ function loadAppointmentsForUser() {
     .then(r => r.json())
     .then(list => {
       container.innerHTML = '';
-      const userAppointments = (list || []).filter(a => a.user_id === user.id);
+      const userAppointments = (list || []).filter(a => a.user_id === user.id && a.status !== 'completed');
       userAppointments.forEach(a => {
         const card = document.createElement('div');
         const statusClass = a.status === 'upcoming' ? 'status-upcoming' : a.status === 'cancelled' ? 'status-cancelled' : '';
         card.className = `appointment-card ${a.status}`;
+        let actions = '';
+        if (a.status === 'upcoming') {
+          actions = `<button class="action-btn-small btn-success mark-visited-btn" data-id="${a.id}">Mark as Visited</button>`;
+        }
         card.innerHTML = `
           <div class="appointment-left">
             <div class="doctor-avatar"><span>👨‍⚕️</span></div>
@@ -139,8 +143,23 @@ function loadAppointmentsForUser() {
               <div class="time">${a.time}</div>
             </div>
             <div class="appointment-status ${statusClass}">${a.status}</div>
+            <div class="appointment-actions">${actions}</div>
           </div>`;
         container.appendChild(card);
+      });
+      // Attach mark as visited events
+      container.querySelectorAll('.mark-visited-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const apptId = this.getAttribute('data-id');
+          const token = sessionStorage.getItem('mc_token');
+          fetch(`${window.__API_BASE}/api/appointments/${apptId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+            body: JSON.stringify({status: 'completed'})
+          })
+            .then(r => r.json())
+            .then(() => loadAppointmentsForUser());
+        });
       });
       // Update appointment stats
       updateAppointmentStats(userAppointments);
