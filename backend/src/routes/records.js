@@ -8,18 +8,7 @@ const router = Router();
 const uploadDir = path.resolve(process.cwd(), 'backend/uploads');
 
 // Multer storage
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    await fs.mkdir(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `rec_${unique}${ext}`);
-  }
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
@@ -58,6 +47,26 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   if (!title || !type) return res.status(400).json({ error: 'Title/type required' });
 
   try {
+    const ext = path.extname(req.file.originalname);
+    const fileName = `rec_${Date.now()}_${Math.round(Math.random() * 1e9)}${ext}`;
+    const bucket = 'medical-records';
+
+    // Upload buffer to Supabase Storage
+    const { data: storageData, error: storageError } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+      });
+
+    if (storageError) {
+      return res.status(500).json({ error: 'Failed to upload to storage: ' + storageError.message });
+    }
+
+    const file_path = storageData.path;
+    const publicUrlData = supabase.storage.from(bucket).getPublicUrl(file_path);
+    const publicUrl = publicUrlData?.data?.publicUrl || null;
+
     const { data, error } = await supabase
       .from('medical_records')
       .insert({
@@ -67,8 +76,9 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         description: description || '',
         doctor_name: doctorName || '',
         record_date: recordDate || null,
-        file_name: req.file.filename,
-        file_path: `/uploads/${req.file.filename}`,
+        file_name: fileName,
+        file_path,
+        public_url: publicUrl,
         file_size: req.file.size,
         file_type: req.file.mimetype,
         original_name: req.file.originalname
@@ -77,14 +87,13 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       .single();
 
     if (error) {
-      await fs.unlink(req.file.path).catch(() => {});
+      await supabase.storage.from(bucket).remove([file_path]);
       return res.status(500).json({ error: 'Failed to save record.' });
     }
 
     res.status(201).json(data);
   } catch (err) {
-    await fs.unlink(req.file.path).catch(() => {});
-    res.status(500).json({ error: 'Upload failed' });
+    res.status(500).json({ error: 'Upload failed: ' + err.message });
   }
 });
 
