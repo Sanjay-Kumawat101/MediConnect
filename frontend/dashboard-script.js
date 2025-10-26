@@ -357,9 +357,6 @@ function loadMedicalRecords() {
             <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
             <h3>No medical records yet</h3>
             <p>Upload your first medical record to get started</p>
-            <button class="action-btn btn-primary" onclick="uploadRecord()" style="margin-top: 16px;">
-              <span>📤</span> Upload Record
-            </button>
           </div>
         `;
       }
@@ -923,6 +920,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       } catch (err) {
         resultDiv.innerHTML = `<span style='color:#e53e3e;'>Network error. Please try again later.</span>`;
+      }
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const recordForm = document.getElementById('uploadRecordForm');
+  if (recordForm) {
+    recordForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const token = sessionStorage.getItem('mc_token');
+      const formData = new FormData(recordForm);
+
+      try {
+        const resp = await fetch(`${window.__API_BASE}/api/records/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          alert('Medical record uploaded successfully!');
+          closeModal('uploadRecordModal');
+          loadMedicalRecords();
+        } else {
+          alert(data.error || 'Upload failed. Please check your file and details.');
+        }
+      } catch (err) {
+        alert('Network error. Please try again.');
       }
     });
   }
