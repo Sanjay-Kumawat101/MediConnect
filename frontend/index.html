@@ -7,16 +7,49 @@
   <link rel="stylesheet" href="registration-style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="header-logo">
-        <img src="mediconnect-logo.svg" alt="MediConnect" class="header-logo-image">
+  <main class="auth-layout">
+    <aside class="brand-panel">
+      <a class="brand-logo" href="index.html" aria-label="MediConnect home">
+        <img src="mediconnect-logo.svg" alt="">
+        <span>Medi<span>Connect</span></span>
+      </a>
+      <p class="brand-tagline">Connect <span>•</span> Consult <span>•</span> Care</p>
+      <h1>Your Health,<br>Our <span>Connection.</span></h1>
+      <p class="brand-description">Seamless connection between patients and doctors for better care.</p>
+      <ul class="brand-features">
+        <li><span>▦</span>Book appointments</li>
+        <li><span>✚</span>Consult trusted doctors</li>
+        <li><span>♡</span>Track your health</li>
+        <li><span>⇧</span>Access medical records</li>
+      </ul>
+      <div class="care-illustration" aria-hidden="true">
+        <span class="illustration-cross cross-one">+</span>
+        <span class="illustration-cross cross-two">+</span>
+        <div class="care-orbit orbit-one"></div>
+        <div class="care-orbit orbit-two"></div>
+        <div class="care-person doctor-figure">
+          <div class="person-hair"></div>
+          <div class="person-face"></div>
+          <div class="person-body doctor-coat"><span>✚</span></div>
+        </div>
+        <div class="care-person patient-figure">
+          <div class="person-hair"></div>
+          <div class="person-face"></div>
+          <div class="person-body patient-coat"></div>
+        </div>
+        <div class="illustration-ground"></div>
       </div>
+      <span class="brand-glow glow-one"></span>
+      <span class="brand-glow glow-two"></span>
+    </aside>
+
+    <section class="container auth-card" aria-labelledby="formTitle">
+      <div class="header">
       <h2 id="formTitle">Join MediConnect</h2>
       <p id="formSubtitle">Connect with healthcare professionals and patients</p>
-    </div>
+      </div>
     
-    <div class="form-content">
+      <div class="form-content">
       <div class="auth-toggle">
         <button type="button" id="registerTab" class="auth-tab active">Register</button>
         <button type="button" id="loginTab" class="auth-tab">Login</button>
@@ -46,7 +79,7 @@
                 <span class="role-icon">👨‍⚕️</span>
                 <div>Doctor</div>
               </label>
-            </div>
+              </div>
           </div>
         </div>
 
@@ -59,7 +92,7 @@
         <div class="form-row">
           <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email">
             <div class="error-message" id="emailError">Please enter a valid email</div>
           </div>
           <div class="form-group">
@@ -98,9 +131,9 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="passwordGroup">
           <label for="password">Create Password</label>
-          <input type="password" id="password" name="password" required>
+          <input type="password" id="password" name="password">
           <div class="password-strength" id="passwordStrength">
             <div class="password-strength-bar"></div>
           </div>
@@ -110,6 +143,7 @@
         <button type="submit" class="submit-btn" id="submitBtn">
           Create Account
         </button>
+        <button type="button" class="google-btn" id="registerGoogleBtn" style="display: none;">Register Patient with Google</button>
       </form>
 
       <!-- Login Form -->
@@ -135,9 +169,15 @@
         <button type="submit" class="submit-btn" id="loginBtn">
           Sign In
         </button>
+        <button type="button" class="google-btn" id="loginGoogleBtn">Sign in with Google</button>
       </form>
-    </div>
-  </div>
-</body>
+      <button type="button" class="google-btn" id="signOutBtn" style="display: none;">Sign out</button>
+      </div>
+    </section>
+  </main>
+<script src="/api/config.js"></script>
+<script src="/vendor/supabase/supabase.js"></script>
+<script src="auth-client.js"></script>
 <script src="registration-script.js"></script>
+</body>
 </html>

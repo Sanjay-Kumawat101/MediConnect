@@ -1,6 +1,7 @@
 // dashboard-script.js
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  await window.mcAuthReady;
   // API base resolver
   window.__API_BASE = window.__API_BASE || (window.location.protocol === 'file:' ? 'http://localhost:4000' : '');
   updateUserInfo();
@@ -22,6 +23,7 @@ function updateUserInfo() {
   // Populate basic header immediately
   document.getElementById('userName').textContent = storedUser.name || 'User';
   document.getElementById('userRole').textContent = storedUser.role || 'User';
+  window.updateDashboardGreeting?.();
 
   // Fetch fresh profile from backend
   fetch(`${window.__API_BASE}/api/users/${storedUser.id}`, {
@@ -30,6 +32,8 @@ function updateUserInfo() {
     .then(r => r.json())
     .then(user => {
       if (!user || user.error) return;
+      document.getElementById('userName').textContent = user.name || 'User';
+      window.updateDashboardGreeting?.();
       if (document.getElementById('profileName')) document.getElementById('profileName').textContent = user.name || '';
       if (document.getElementById('profileRole')) document.getElementById('profileRole').textContent = user.role || 'User';
       if (document.getElementById('profileFullName')) document.getElementById('profileFullName').value = user.name || '';
@@ -169,10 +173,15 @@ function loadAppointmentsForUser() {
 
 // Modal functions
 function bookAppointment() {
-  document.getElementById('appointmentModal').classList.add('show');
+  openBookingModal();
 }
 
 function openBookingModal() {
+  const user = JSON.parse(sessionStorage.getItem('mc_user') || '{}');
+  document.getElementById('bookingPatientName').value = user.name || '';
+  document.getElementById('bookingPatientPhone').value = user.phone || '';
+  document.getElementById('bookingPatientGender').value = user.gender || '';
+  document.getElementById('bookingPatientDob').value = user.dob || '';
   document.getElementById('appointmentModal').classList.add('show');
 }
 
@@ -196,9 +205,7 @@ document.addEventListener('click', function(e) {
 // Logout function
 function logout() {
   if (confirm('Are you sure you want to logout?')) {
-    sessionStorage.removeItem('mc_token');
-    sessionStorage.removeItem('mc_user');
-    window.location.href = 'index.html';
+    window.mcSignOut().catch(error => alert(error.message || 'Could not sign out. Please try again.'));
   }
 }
 
@@ -293,11 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const bookingForm = document.getElementById('bookingForm');
   if (bookingForm) {
-    bookingForm.addEventListener('submit', function(e) {
+    bookingForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const appointmentDate = document.getElementById('appointmentDate').value;
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const selectedDate = new Date(appointmentDate);
       
       // Validate date is not in the past
@@ -317,6 +325,38 @@ document.addEventListener('DOMContentLoaded', function() {
       const doctorId = document.getElementById('doctorSelect').value || 'unknown';
       const time = document.getElementById('appointmentTime').value;
       const reason = document.getElementById('appointmentReason').value;
+      const profile = {
+        role: 'patient',
+        name: document.getElementById('bookingPatientName').value.trim(),
+        phone: document.getElementById('bookingPatientPhone').value.trim(),
+        gender: document.getElementById('bookingPatientGender').value,
+        dob: document.getElementById('bookingPatientDob').value
+      };
+      const submitButton = bookingForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      let profileSaved = false;
+      try {
+        const profileResponse = await fetch(`${window.__API_BASE}/api/auth/profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem('mc_token')}`
+          },
+          body: JSON.stringify(profile)
+        });
+        const savedProfile = await profileResponse.json();
+        if (!profileResponse.ok) {
+          alert(savedProfile.error || 'Could not save your profile');
+          return;
+        }
+        sessionStorage.setItem('mc_user', JSON.stringify(savedProfile));
+        profileSaved = true;
+      } catch (error) {
+        alert(error.message || 'Could not save your profile');
+        return;
+      } finally {
+        if (!profileSaved) submitButton.disabled = false;
+      }
       fetch(`${window.__API_BASE}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -325,10 +365,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resp && !resp.error) {
           alert('Appointment booked successfully!');
           closeModal('appointmentModal');
+          loadAppointmentsForUser();
         } else {
           alert(resp.error || 'Booking failed');
         }
-      }).catch(() => alert('Booking failed'));
+      }).catch(() => alert('Booking failed')).finally(() => {
+        submitButton.disabled = false;
+      });
     });
   }
 });
@@ -463,7 +506,7 @@ function viewRecord(id) {
     .then(record => {
       if (record && !record.error) {
         // Open the file in a new tab
-        window.open(`${window.__API_BASE}${record.file_path}`, '_blank');
+        window.open(record.signed_url, '_blank', 'noopener');
       } else {
         alert('Failed to load record');
       }
@@ -482,7 +525,7 @@ function downloadRecord(id) {
       if (record && !record.error) {
         // Create download link
         const link = document.createElement('a');
-        link.href = `${window.__API_BASE}${record.file_path}`;
+        link.href = record.signed_url;
         link.download = record.original_name || record.title;
         document.body.appendChild(link);
         link.click();

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediConnect Admin</title>
+  <link rel="stylesheet" href="dashboard-style.css">
+  <style>
+    .admin-intro {
+      margin: 0 0 22px;
+      color: var(--muted);
+    }
+
+    .doctor-application {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .doctor-application h2 {
+      color: var(--ink);
+      font-size: 19px;
+    }
+
+    .doctor-application dl {
+      display: grid;
+      grid-template-columns: minmax(110px, .7fr) minmax(0, 1.3fr);
+      gap: 9px 14px;
+      margin: 0;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .doctor-application dt {
+      color: var(--muted);
+    }
+
+    .doctor-application dd {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .application-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .application-actions .action-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-reject {
+      color: #a34561;
+      border: 1px solid #f1d6df;
+      background: #fff5f7;
+    }
+
+    .btn-reject:hover {
+      background: #ffe9ee;
+    }
+
+    #applicationMessage {
+      margin-bottom: 18px;
+      color: var(--muted);
+    }
+
+    #applicationMessage.error {
+      color: #a34561;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="mediconnect-logo.svg" alt="MediConnect" class="logo-image">
+          <span>MediConnect</span>
+        </div>
+        <div class="user-info">Administrator portal</div>
+      </div>
+      <nav class="nav-menu">
+        <a class="nav-item active" href="admin-dashboard.html">
+          <span class="nav-icon">✓</span>
+          <span>Doctor verification</span>
+        </a>
+        <a class="nav-item" href="#" id="adminLogout">
+          <span class="nav-icon">🚪</span>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="welcome-text">
+          <h1>Doctor Verification</h1>
+          <p>Review and verify doctor registration requests</p>
+        </div>
+        <button class="action-btn btn-secondary" id="refreshApplications">Refresh</button>
+      </header>
+      <p class="admin-intro">Only verified doctors can sign in to the doctor portal.</p>
+      <p id="applicationMessage" role="status">Loading doctor applications…</p>
+      <div class="dashboard-grid" id="doctorApplications"></div>
+    </main>
+  </div>
+
+  <script src="/api/config.js"></script>
+  <script src="/vendor/supabase/supabase.js"></script>
+  <script src="auth-client.js"></script>
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>

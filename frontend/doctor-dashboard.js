@@ -1,5 +1,6 @@
 // Minimal doctor dashboard logic
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  await window.mcAuthReady;
   window.__API_BASE = window.__API_BASE || (window.location.protocol === 'file:' ? 'http://localhost:4000' : '');
   initDoctor();
 });
@@ -13,6 +14,7 @@ function initDoctor() {
   }
   document.getElementById('userName').textContent = user.name || 'Doctor';
   document.getElementById('userRole').textContent = 'Doctor';
+  window.updateDashboardGreeting?.();
   bindNav();
   loadAppointments();
   bindAvailability();
@@ -40,9 +42,7 @@ function toggleSidebar() {
 }
 
 function logout() {
-  sessionStorage.removeItem('mc_token');
-  sessionStorage.removeItem('mc_user');
-  window.location.href = 'index.html';
+  window.mcSignOut().catch(error => alert(error.message || 'Could not sign out. Please try again.'));
 }
 
 function refreshAppointments() {
@@ -133,5 +133,3 @@ function bindAvailability() {
     }).catch(() => alert('Failed to add availability'));
   });
 }
-
-

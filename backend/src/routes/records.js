@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs/promises';
 import { supabase } from '../lib/supabase.js';
 
 const router = Router();
-const uploadDir = path.resolve(process.cwd(), 'backend/uploads');
+const storageBucket = 'medical-records';
+
+async function addSignedUrl(record) {
+  const { data, error } = await supabase.storage
+    .from(storageBucket)
+    .createSignedUrl(record.file_path, 300);
+  if (error) throw error;
+  return { ...record, signed_url: data.signedUrl, public_url: null };
+}
 
 // Multer storage
 const storage = multer.memoryStorage();
@@ -34,7 +41,12 @@ router.get('/', async (req, res) => {
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: 'Failed to fetch records' });
-  res.json(data || []);
+  try {
+    res.json(await Promise.all((data || []).map(addSignedUrl)));
+  } catch (signError) {
+    console.error('Medical-record link signing failed:', signError);
+    res.status(500).json({ error: 'Failed to prepare secure medical-record links' });
+  }
 });
 
 // Upload new record
@@ -49,11 +61,10 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     const ext = path.extname(req.file.originalname);
     const fileName = `rec_${Date.now()}_${Math.round(Math.random() * 1e9)}${ext}`;
-    const bucket = 'medical-records';
 
     // Upload buffer to Supabase Storage
     const { data: storageData, error: storageError } = await supabase.storage
-      .from(bucket)
+      .from(storageBucket)
       .upload(fileName, req.file.buffer, {
         contentType: req.file.mimetype,
         upsert: false
@@ -64,8 +75,14 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 
     const file_path = storageData.path;
-    const publicUrlData = supabase.storage.from(bucket).getPublicUrl(file_path);
-    const publicUrl = publicUrlData?.data?.publicUrl || null;
+    const { data: signedData, error: signedUrlError } = await supabase.storage
+      .from(storageBucket)
+      .createSignedUrl(file_path, 300);
+    if (signedUrlError) {
+      await supabase.storage.from(storageBucket).remove([file_path]);
+      console.error('Medical-record link signing failed:', signedUrlError);
+      return res.status(500).json({ error: 'Failed to prepare a secure medical-record link' });
+    }
 
     const { data, error } = await supabase
       .from('medical_records')
@@ -78,7 +95,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         record_date: recordDate || null,
         file_name: fileName,
         file_path,
-        public_url: publicUrl,
+        public_url: null,
         file_size: req.file.size,
         file_type: req.file.mimetype,
         original_name: req.file.originalname
@@ -87,11 +104,11 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       .single();
 
     if (error) {
-      await supabase.storage.from(bucket).remove([file_path]);
+      await supabase.storage.from(storageBucket).remove([file_path]);
       return res.status(500).json({ error: 'Failed to save record.' });
     }
 
-    res.status(201).json(data);
+    res.status(201).json({ ...data, signed_url: signedData.signedUrl });
   } catch (err) {
     res.status(500).json({ error: 'Upload failed: ' + err.message });
   }
@@ -112,7 +129,12 @@ router.get('/:id', async (req, res) => {
 
   if (error || !data) return res.status(404).json({ error: 'Record not found' });
 
-  res.json(data);
+  try {
+    res.json(await addSignedUrl(data));
+  } catch (signError) {
+    console.error('Medical-record link signing failed:', signError);
+    res.status(500).json({ error: 'Failed to prepare a secure medical-record link' });
+  }
 });
 
 // Delete record (and file)
@@ -139,15 +161,18 @@ router.delete('/:id', async (req, res) => {
 
   if (error) return res.status(500).json({ error: 'Failed to delete record' });
 
-  // Delete file
+  // Delete the private storage object after removing its database record.
   if (record.file_path) {
-    const filePath = path.resolve(process.cwd(), 'backend', record.file_path.substring(1));
-    await fs.unlink(filePath).catch(() => {});
+    const { error: storageError } = await supabase.storage
+      .from(storageBucket)
+      .remove([record.file_path]);
+    if (storageError) {
+      console.error('Medical-record storage deletion failed:', storageError);
+      return res.status(500).json({ error: 'Record deleted, but its stored file could not be removed' });
+    }
   }
 
   res.status(204).send();
 });
 
 export default router;
-
-

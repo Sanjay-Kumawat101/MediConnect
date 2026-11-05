@@ -5,7 +5,8 @@ const router = Router();
 
 // List availability. If doctorId not provided, use authenticated user
 router.get('/', async (req, res) => {
-  const doctorId = req.query.doctorId || req.user?.sub;
+  const doctorId = req.user.role === 'doctor' ? req.user.sub : req.query.doctorId;
+  if (!doctorId) return res.status(400).json({ error: 'doctorId is required' });
   const { data, error } = await supabase
     .from('availability')
     .select('*')
@@ -18,6 +19,9 @@ router.get('/', async (req, res) => {
 
 // Create availability for authenticated doctor
 router.post('/', async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ error: 'Only approved doctors can manage availability' });
+  }
   const doctorId = req.user?.sub;
   const { date, time, notes } = req.body || {};
   if (!date || !time) return res.status(400).json({ error: 'date and time are required' });
@@ -36,6 +40,9 @@ router.post('/', async (req, res) => {
 
 // Delete availability by id (must own)
 router.delete('/:id', async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ error: 'Only approved doctors can manage availability' });
+  }
   const doctorId = req.user?.sub;
   const { error } = await supabase
     .from('availability')
@@ -47,5 +54,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
-
 

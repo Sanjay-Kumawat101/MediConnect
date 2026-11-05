@@ -7,11 +7,11 @@ router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('alerts')
     .select('*')
+    .eq('user_id', req.user.sub)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: 'Failed to fetch alerts' });
   res.json(data || []);
 });
 
 export default router;
-
 

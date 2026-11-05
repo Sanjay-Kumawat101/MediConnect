@@ -1,249 +1,351 @@
-// registration-script.js
-document.addEventListener('DOMContentLoaded', function() {
-    // API base resolver (supports file:// or different origins)
-    const DEFAULT_API = 'http://localhost:4000';
-    const API_BASE = (window.__API_BASE || (window.location.protocol === 'file:' ? DEFAULT_API : ''));
-    const registrationForm = document.getElementById('registrationForm');
-    const loginForm = document.getElementById('loginForm');
-    const doctorFields = document.getElementById('doctorFields');
-    const passwordInput = document.getElementById('password');
-    const passwordStrength = document.getElementById('passwordStrength');
-    const submitBtn = document.getElementById('submitBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const successMessage = document.getElementById('successMessage');
-    const registerTab = document.getElementById('registerTab');
-    const loginTab = document.getElementById('loginTab');
-    const formTitle = document.getElementById('formTitle');
-    const formSubtitle = document.getElementById('formSubtitle');
+document.addEventListener('DOMContentLoaded', async function() {
+  const DEFAULT_API = 'http://localhost:4000';
+  const API_BASE = window.__API_BASE || (window.location.protocol === 'file:' ? DEFAULT_API : '');
+  const client = window.mcSupabase;
+  const registrationForm = document.getElementById('registrationForm');
+  const loginForm = document.getElementById('loginForm');
+  const doctorFields = document.getElementById('doctorFields');
+  const passwordGroup = document.getElementById('passwordGroup');
+  const passwordInput = document.getElementById('password');
+  const submitBtn = document.getElementById('submitBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const successMessage = document.getElementById('successMessage');
+  const registerTab = document.getElementById('registerTab');
+  const loginTab = document.getElementById('loginTab');
+  const formTitle = document.getElementById('formTitle');
+  const formSubtitle = document.getElementById('formSubtitle');
+  const emailInput = document.getElementById('email');
+  let completingProfile = false;
 
-    // Tab switching functionality
-    registerTab.addEventListener('click', function() {
-      switchToRegister();
+  function showMessage(message, isError = false) {
+    successMessage.textContent = message;
+    successMessage.style.display = 'block';
+    successMessage.classList.toggle('error', isError);
+  }
+
+  function switchToRegister() {
+    registerTab.classList.add('active');
+    loginTab.classList.remove('active');
+    registrationForm.style.display = 'block';
+    loginForm.style.display = 'none';
+    formTitle.textContent = 'Join MediConnect';
+    formSubtitle.textContent = 'Connect with healthcare professionals and patients';
+  }
+
+  function switchToLogin() {
+    loginTab.classList.add('active');
+    registerTab.classList.remove('active');
+    registrationForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    formTitle.textContent = 'Welcome Back';
+    formSubtitle.textContent = 'Sign in to your MediConnect account';
+  }
+
+  function selectedRole() {
+    return registrationForm.querySelector('input[name="role"]:checked')?.value || '';
+  }
+
+  function profileFromForm() {
+    const role = selectedRole();
+    return {
+      name: document.getElementById('fullname').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      role,
+      gender: document.getElementById('gender').value,
+      dob: document.getElementById('dob').value,
+      specialization: document.getElementById('specialization').value.trim(),
+      licenseNumber: document.getElementById('license').value.trim()
+    };
+  }
+
+  function profileFromMetadata(user) {
+    const metadata = user.user_metadata || {};
+    return {
+      name: metadata.name || metadata.full_name || '',
+      phone: metadata.phone || '',
+      role: metadata.role || '',
+      gender: metadata.gender || '',
+      dob: metadata.dob || '',
+      specialization: metadata.specialization || '',
+      licenseNumber: metadata.licenseNumber || ''
+    };
+  }
+
+  function profileIsComplete(profile) {
+    return Boolean(
+      profile.name && profile.phone && profile.role && profile.gender && profile.dob &&
+      (profile.role !== 'doctor' || (profile.specialization && profile.licenseNumber))
+    );
+  }
+
+  async function requestProfile(token, method = 'GET', body) {
+    const response = await fetch(`${API_BASE}/api/auth/profile`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body ? { 'Content-Type': 'application/json' } : {})
+      },
+      ...(body ? { body: JSON.stringify(body) } : {})
     });
+    const data = await response.json();
+    return { response, data };
+  }
 
-    loginTab.addEventListener('click', function() {
-      switchToLogin();
-    });
-
-    function switchToRegister() {
-      registerTab.classList.add('active');
-      loginTab.classList.remove('active');
-      registrationForm.style.display = 'block';
-      loginForm.style.display = 'none';
-      formTitle.textContent = 'Join MediConnect';
-      formSubtitle.textContent = 'Connect with healthcare professionals and patients';
+  function goToAccount(profile) {
+    sessionStorage.setItem('mc_user', JSON.stringify(profile));
+    if (profile.role === 'doctor' && profile.approval_status === 'rejected') {
+      signOutBtn.style.display = 'block';
+      showMessage('Your doctor account was not approved. Please contact the MediConnect administrator.');
+      return;
+    }
+    if (profile.role === 'doctor' && profile.approval_status !== 'approved') {
+      signOutBtn.style.display = 'block';
+      showMessage('Your doctor account has been submitted and is waiting for admin approval. You can sign in again after approval.');
+      return;
     }
 
-    function switchToLogin() {
-      loginTab.classList.add('active');
-      registerTab.classList.remove('active');
-      registrationForm.style.display = 'none';
-      loginForm.style.display = 'block';
-      formTitle.textContent = 'Welcome Back';
-      formSubtitle.textContent = 'Sign in to your MediConnect account';
-    }
+    showMessage('Account ready. Redirecting...');
+    const target = profile.role === 'admin' ? 'admin-dashboard.html' :
+      profile.role === 'doctor' ? 'doctor-dashboard.html' : 'dashboard.html';
+    setTimeout(() => { window.location.href = target; }, 700);
+  }
 
-    // Role selection handler
-    document.querySelectorAll('input[name="role"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        if (this.value === 'doctor') {
-          doctorFields.classList.add('show');
-          document.getElementById('specialization').required = true;
-          document.getElementById('license').required = true;
-        } else {
-          doctorFields.classList.remove('show');
-          document.getElementById('specialization').required = false;
-          document.getElementById('license').required = false;
-        }
-      });
-    });
-
-    // Password strength checker
-    passwordInput.addEventListener('input', function() {
-      const password = this.value;
-      const strength = calculatePasswordStrength(password);
-      
-      passwordStrength.className = 'password-strength';
-      if (strength.score > 0) {
-        passwordStrength.classList.add(strength.level);
+  function enableProfileCompletion(user, profile = {}) {
+    completingProfile = true;
+    switchToRegister();
+    loginTab.disabled = true;
+    passwordGroup.style.display = 'none';
+    document.getElementById('registerGoogleBtn').style.display = 'none';
+    signOutBtn.style.display = 'block';
+    document.getElementById('fullname').value = profile.name || user.user_metadata?.full_name || user.user_metadata?.name || '';
+    emailInput.value = user.email || '';
+    emailInput.readOnly = true;
+    if (profile.phone) document.getElementById('phone').value = profile.phone;
+    if (profile.gender) document.getElementById('gender').value = profile.gender;
+    if (profile.dob) document.getElementById('dob').value = profile.dob;
+    if (profile.specialization) document.getElementById('specialization').value = profile.specialization;
+    if (profile.licenseNumber) document.getElementById('license').value = profile.licenseNumber;
+    if (profile.role) {
+      const radio = registrationForm.querySelector(`input[name="role"][value="${profile.role}"]`);
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
       }
-    });
+    }
+    submitBtn.textContent = 'Complete Profile';
+    formTitle.textContent = 'Complete Your Profile';
+    formSubtitle.textContent = 'Add the details needed to use MediConnect';
+    showMessage('Your Google account is connected. Complete the details below to continue.');
+  }
 
-    function calculatePasswordStrength(password) {
-      let score = 0;
-      let level = '';
+  function isGoogleUser(user) {
+    return user.app_metadata?.provider === 'google' ||
+      user.identities?.some(identity => identity.provider === 'google');
+  }
 
-      if (password.length >= 8) score++;
-      if (/[a-z]/.test(password)) score++;
-      if (/[A-Z]/.test(password)) score++;
-      if (/[0-9]/.test(password)) score++;
-      if (/[^A-Za-z0-9]/.test(password)) score++;
+  async function handleSession(session) {
+    if (!session?.access_token || completingProfile) return;
+    sessionStorage.setItem('mc_token', session.access_token);
 
-      if (score < 3) level = 'weak';
-      else if (score < 5) level = 'medium';
-      else level = 'strong';
-
-      return { score, level };
+    const { response, data } = await requestProfile(session.access_token);
+    if (response.ok) {
+      sessionStorage.removeItem('mc_pending_profile');
+      goToAccount(data);
+      return;
+    }
+    if (data.code !== 'PROFILE_REQUIRED') {
+      showMessage(data.error || 'Could not load your profile. Please try again.', true);
+      return;
     }
 
-    // Form validation
-    function validateField(field, errorElement, validationFn) {
-      const isValid = validationFn(field.value);
-      
-      if (isValid) {
-        field.classList.remove('field-invalid');
-        field.classList.add('field-valid');
-        errorElement.style.display = 'none';
-      } else {
-        field.classList.remove('field-valid');
-        field.classList.add('field-invalid');
-        errorElement.style.display = 'block';
+    let pendingProfile = null;
+    try {
+      pendingProfile = JSON.parse(sessionStorage.getItem('mc_pending_profile') || 'null');
+    } catch {
+      sessionStorage.removeItem('mc_pending_profile');
+    }
+    const profile = pendingProfile || profileFromMetadata(session.user);
+    if (profile.role === 'patient' && isGoogleUser(session.user)) {
+      const saved = await requestProfile(session.access_token, 'POST', { role: 'patient' });
+      if (saved.response.ok) {
+        sessionStorage.removeItem('mc_pending_profile');
+        goToAccount(saved.data);
+        return;
       }
-      
-      return isValid;
+      showMessage(saved.data.error || 'Could not create your patient account. Please try again.', true);
+      return;
     }
+    if (isGoogleUser(session.user)) {
+      showMessage('Google registration is available for patients only. Select Patient on the registration tab to continue.', true);
+      return;
+    }
+    if (profileIsComplete(profile)) {
+      const saved = await requestProfile(session.access_token, 'POST', profile);
+      if (saved.response.ok) {
+        sessionStorage.removeItem('mc_pending_profile');
+        goToAccount(saved.data);
+        return;
+      }
+      showMessage(saved.data.error || 'Could not save your profile. Please try again.', true);
+      return;
+    }
+    enableProfileCompletion(session.user, profile);
+  }
 
-    // Real-time validation for registration
-    document.getElementById('fullname').addEventListener('blur', function() {
-      validateField(this, document.getElementById('fullnameError'), 
-        value => value.trim().length >= 2);
+  function validateProfile(profile) {
+    if (!registrationForm.reportValidity()) return false;
+    if (!profile.role) {
+      showMessage('Choose whether you are registering as a patient or doctor.', true);
+      return false;
+    }
+    if (profile.name.length < 2 || !profile.phone || !profile.gender || !profile.dob) {
+      showMessage('Enter your name, phone number, gender, and date of birth.', true);
+      return false;
+    }
+    if (profile.role === 'doctor' && (!profile.specialization || !profile.licenseNumber)) {
+      showMessage('Doctors must enter their specialization and medical license number.', true);
+      return false;
+    }
+    return true;
+  }
+
+  async function finishProfile(profile) {
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error || !session) throw error || new Error('Your sign-in session expired. Please sign in again.');
+    const saved = await requestProfile(session.access_token, 'POST', profile);
+    if (!saved.response.ok) throw new Error(saved.data.error || 'Could not save your profile');
+    sessionStorage.removeItem('mc_pending_profile');
+    completingProfile = false;
+    goToAccount(saved.data);
+  }
+
+  async function startGoogleSignIn(profile) {
+    if (profile) sessionStorage.setItem('mc_pending_profile', JSON.stringify(profile));
+    else sessionStorage.removeItem('mc_pending_profile');
+
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo }
     });
+    if (error) {
+      sessionStorage.removeItem('mc_pending_profile');
+      throw error;
+    }
+  }
 
-    document.getElementById('email').addEventListener('blur', function() {
-      validateField(this, document.getElementById('emailError'), 
-        value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
+  document.querySelectorAll('input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const isDoctor = this.value === 'doctor';
+      doctorFields.classList.toggle('show', isDoctor);
+      document.getElementById('specialization').required = isDoctor;
+      document.getElementById('license').required = isDoctor;
+      document.getElementById('registerGoogleBtn').style.display = isDoctor ? 'none' : '';
     });
+  });
 
-    document.getElementById('phone').addEventListener('blur', function() {
-      validateField(
-        this,
-        document.getElementById('phoneError'),
-        value => {
-          const cleaned = value.replace(/\D/g, ''); // Remove all non-digit characters
-          return (
-            /^(\+91)?[6-9]\d{9}$/.test(value) || // Accept +91 format
-            /^0[6-9]\d{9}$/.test(value) ||       // Accept leading 0 format
-            /^[6-9]\d{9}$/.test(value)           // Accept plain 10-digit format
-          );
-        }
-      );
-    });
+  registerTab.addEventListener('click', switchToRegister);
+  loginTab.addEventListener('click', switchToLogin);
 
-    document.getElementById('dob').addEventListener('blur', function() {
-      validateField(this, document.getElementById('dobError'), 
-        value => {
-          if (!value) return false;
-          const today = new Date();
-          today.setHours(0,0,0,0);
-          const birthDate = new Date(value);
-          if (isNaN(birthDate.getTime())) return false;
-          if (birthDate > today) return false; // disallow future date
-          const age = today.getFullYear() - birthDate.getFullYear();
-          return age >= 0 && age <= 120;
-        });
-    });
+  registrationForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const profile = profileFromForm();
+    if (!validateProfile(profile)) return;
 
-    passwordInput.addEventListener('blur', function() {
-      validateField(this, document.getElementById('passwordError'), 
-        value => value.length >= 8);
-    });
-
-    // Real-time validation for login
-    document.getElementById('loginEmail').addEventListener('blur', function() {
-      validateField(this, document.getElementById('loginEmailError'), 
-        value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
-    });
-
-    document.getElementById('loginPassword').addEventListener('blur', function() {
-      validateField(this, document.getElementById('loginPasswordError'), 
-        value => value.length > 0);
-    });
-
-    // Registration form submission (calls backend)
-    registrationForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const formData = new FormData(this);
-      const password = formData.get('password');
-      if (password.length < 8) {
-        document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long';
-        document.getElementById('passwordError').style.display = 'block';
-        document.getElementById('password').classList.add('field-invalid');
+    submitBtn.disabled = true;
+    try {
+      if (completingProfile) {
+        await finishProfile(profile);
         return;
       }
 
-      const payload = {
-        name: formData.get('fullname'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        role: formData.get('role'),
-        gender: formData.get('gender'),
-        dob: formData.get('dob'),
-        password
-      };
-
-      submitBtn.classList.add('loading');
-      submitBtn.textContent = 'Creating Account...';
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Registration failed');
-        }
-        // Save token and user for dashboard
-        sessionStorage.setItem('mc_token', data.token);
-        sessionStorage.setItem('mc_user', JSON.stringify(data.user));
-
-        successMessage.style.display = 'block';
-        successMessage.textContent = 'Registration successful! Redirecting...';
-        const redirectTo = (data.user?.role === 'doctor') ? 'doctor-dashboard.html' : 'dashboard.html';
-        setTimeout(() => { window.location.href = redirectTo; }, 800);
-      } catch (err) {
-        alert(err.message);
-      } finally {
-        submitBtn.classList.remove('loading');
-        submitBtn.textContent = 'Create Account';
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      if (!email || !emailInput.validity.valid) {
+        showMessage('Enter a valid email address.', true);
+        emailInput.focus();
+        return;
       }
-    });
-
-    // Login form submission (calls backend)
-    loginForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      loginBtn.classList.add('loading');
-      loginBtn.textContent = 'Signing In...';
-      try {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Login failed');
-        }
-        sessionStorage.setItem('mc_token', data.token);
-        sessionStorage.setItem('mc_user', JSON.stringify(data.user));
-        successMessage.style.display = 'block';
-        successMessage.textContent = 'Login successful! Redirecting...';
-        const redirectTo = (data.user?.role === 'doctor') ? 'doctor-dashboard.html' : 'dashboard.html';
-        setTimeout(() => { window.location.href = redirectTo; }, 800);
-      } catch (err) {
-        alert(err.message);
-      } finally {
-        loginBtn.classList.remove('loading');
-        loginBtn.textContent = 'Sign In';
+      if (password.length < 8) {
+        showMessage('Password must be at least 8 characters.', true);
+        passwordInput.focus();
+        return;
       }
-    });
 
-    // Forgot password functionality
-    document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
-      e.preventDefault();
-      alert('Password reset functionality would be implemented here. Please contact support for now.');
-    });
+      sessionStorage.setItem('mc_pending_profile', JSON.stringify(profile));
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: { data: { name: profile.name } }
+      });
+      if (error) throw error;
+      if (data.session) {
+        await handleSession(data.session);
+      } else {
+        showMessage('Check your email to confirm your account, then return here to finish setting up your profile.');
+      }
+    } catch (error) {
+      showMessage(error.message || 'Registration failed. Please try again.', true);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  loginForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    loginBtn.disabled = true;
+    try {
+      const { data, error } = await client.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value.trim(),
+        password: document.getElementById('loginPassword').value
+      });
+      if (error) throw error;
+      await handleSession(data.session);
+    } catch (error) {
+      showMessage(error.message || 'Login failed. Please try again.', true);
+    } finally {
+      loginBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('registerGoogleBtn').addEventListener('click', async function() {
+    if (selectedRole() !== 'patient') {
+      showMessage('Select Patient to register with Google.', true);
+      return;
+    }
+    try {
+      await startGoogleSignIn({ role: 'patient' });
+    } catch (error) {
+      showMessage(error.message || 'Google sign-in could not be started.', true);
+    }
+  });
+
+  document.getElementById('loginGoogleBtn').addEventListener('click', async function() {
+    try {
+      await startGoogleSignIn();
+    } catch (error) {
+      showMessage(error.message || 'Google sign-in could not be started.', true);
+    }
+  });
+
+  document.getElementById('forgotPasswordLink').addEventListener('click', function(event) {
+    event.preventDefault();
+    alert('Password reset is not set up yet. Contact support for assistance.');
+  });
+
+  signOutBtn.addEventListener('click', function() {
+    window.mcSignOut().catch(error => showMessage(error.message || 'Could not sign out', true));
+  });
+
+  try {
+    await window.mcAuthReady;
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error_description') || params.get('error');
+    if (oauthError) showMessage(oauthError, true);
+    const { data: { session } } = await client.auth.getSession();
+    if (session) await handleSession(session);
+  } catch (error) {
+    showMessage(error.message || 'Could not initialize Supabase authentication.', true);
+  }
 });
