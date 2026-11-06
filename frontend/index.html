@@ -149,6 +149,15 @@
       <!-- Login Form -->
       <form id="loginForm" action="/submit_login" method="POST" style="display: none;">
         <div class="form-group">
+          <label for="loginRole">Sign in as</label>
+          <select id="loginRole" name="role" required>
+            <option value="patient">Patient</option>
+            <option value="doctor">Doctor</option>
+            <option value="admin">Admin</option>
+          </select>
+          <small class="role-help">Admin access is limited to accounts configured by the MediConnect administrator.</small>
+        </div>
+        <div class="form-group">
           <label for="loginEmail">Email Address</label>
           <input type="email" id="loginEmail" name="email" required>
           <div class="error-message" id="loginEmailError">Please enter a valid email</div>

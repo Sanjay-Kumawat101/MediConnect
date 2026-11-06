@@ -6,9 +6,235 @@
   <title>MediConnect Admin</title>
   <link rel="stylesheet" href="dashboard-style.css">
   <style>
-    .admin-intro {
-      margin: 0 0 22px;
+    .admin-shell {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    .admin-topbar {
+      gap: 18px;
+    }
+
+    .admin-topbar .welcome-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    .admin-mark {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: #fff;
+      background: linear-gradient(135deg, #4b6df5, #9653e5);
+      box-shadow: 0 8px 18px rgba(90, 83, 213, .19);
+      font-size: 23px;
+    }
+
+    .admin-topbar .welcome-text p {
+      margin-top: 5px;
+    }
+
+    .admin-hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+      padding: 23px 27px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 19px;
+      color: #fff;
+      background: linear-gradient(112deg, #4b6df5, #7350e7 62%, #9653e5);
+      box-shadow: 0 12px 30px rgba(90, 83, 213, .18);
+    }
+
+    .admin-hero::after {
+      content: "";
+      position: absolute;
+      top: -90px;
+      right: 12%;
+      width: 220px;
+      height: 220px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 28px rgba(255,255,255,.045), 0 0 0 58px rgba(255,255,255,.035);
+      pointer-events: none;
+    }
+
+    .admin-hero-copy {
+      position: relative;
+      z-index: 1;
+    }
+
+    .admin-hero h2 {
+      margin-bottom: 5px;
+      font-size: clamp(20px, 2.4vw, 26px);
+      letter-spacing: -.03em;
+    }
+
+    .admin-hero p {
+      color: rgba(255,255,255,.83);
+      font-size: 14px;
+    }
+
+    .admin-hero-badge {
+      position: relative;
+      z-index: 1;
+      padding: 9px 13px;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      background: rgba(255,255,255,.13);
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .admin-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+      margin-bottom: 23px;
+    }
+
+    .admin-stat {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-height: 105px;
+      padding: 18px;
+      border: 1px solid rgba(226, 229, 245, .82);
+      border-radius: 17px;
+      background: rgba(255,255,255,.9);
+      box-shadow: var(--card-shadow);
+    }
+
+    .admin-stat-icon {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #6042d2;
+      background: #efebff;
+      font-size: 19px;
+    }
+
+    .admin-stat.pending .admin-stat-icon { color: #a76b1b; background: #fff4dc; }
+    .admin-stat.approved .admin-stat-icon { color: #26836d; background: #e4f7f1; }
+    .admin-stat.rejected .admin-stat-icon { color: #b65069; background: #fff0f3; }
+
+    .admin-stat strong {
+      display: block;
+      color: var(--ink);
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .admin-stat span:last-child {
+      display: block;
+      margin-top: 5px;
       color: var(--muted);
+      font-size: 12px;
+    }
+
+    .applications-panel {
+      padding: clamp(17px, 2.4vw, 25px);
+      border: 1px solid rgba(226, 229, 245, .82);
+      border-radius: 20px;
+      background: rgba(255,255,255,.78);
+      box-shadow: var(--card-shadow);
+    }
+
+    .applications-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .applications-heading h2 {
+      color: var(--ink);
+      font-size: 19px;
+    }
+
+    .applications-heading p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .application-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .status-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #f9f8ff;
+    }
+
+    .status-filter {
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 9px;
+      color: #647098;
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .status-filter.active {
+      color: #5836d4;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(52,57,123,.09);
+      font-weight: 650;
+    }
+
+    .application-search {
+      width: min(270px, 100%);
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .application-search:focus {
+      outline: 3px solid rgba(99,56,223,.12);
+      border-color: #947ae7;
+    }
+
+    #applicationMessage {
+      margin: 6px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    #applicationMessage.error { color: #a34561; }
+
+    .application-list {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+      gap: 15px;
+      margin: 0;
     }
 
     .doctor-application {
@@ -16,31 +242,77 @@
       flex-direction: column;
       gap: 18px;
       min-width: 0;
+      padding: 21px;
+      border: 1px solid rgba(226,229,245,.9);
+      border-radius: 17px;
+      background: linear-gradient(145deg, #fff, #fdfcff);
+      box-shadow: 0 7px 22px rgba(52,57,123,.06);
     }
 
-    .doctor-application h2 {
-      color: var(--ink);
-      font-size: 19px;
+    .doctor-card-heading {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
     }
 
-    .doctor-application dl {
+    .doctor-initials {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
       display: grid;
-      grid-template-columns: minmax(110px, .7fr) minmax(0, 1.3fr);
-      gap: 9px 14px;
-      margin: 0;
+      place-items: center;
+      border-radius: 14px;
+      color: #6042d2;
+      background: linear-gradient(145deg, #efebff, #e8edff);
       font-size: 14px;
+      font-weight: 750;
+    }
+
+    .doctor-title {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .doctor-title h3 {
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .doctor-title p {
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .application-status {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+
+    .application-status.pending { color: #94620f; background: #fff3d4; }
+    .application-status.approved { color: #267865; background: #e4f7f1; }
+    .application-status.rejected { color: #a34561; background: #fff0f3; }
+
+    .doctor-details {
+      display: grid;
+      grid-template-columns: minmax(100px, .75fr) minmax(0, 1.25fr);
+      gap: 10px 12px;
+      margin: 0;
+      padding: 15px 0;
+      border-top: 1px solid #edf0f8;
+      border-bottom: 1px solid #edf0f8;
+      font-size: 13px;
       overflow-wrap: anywhere;
     }
 
-    .doctor-application dt {
-      color: var(--muted);
-    }
-
-    .doctor-application dd {
-      margin: 0;
-      color: var(--ink);
-      font-weight: 600;
-    }
+    .doctor-details dt { color: var(--muted); }
+    .doctor-details dd { margin: 0; color: var(--ink); font-weight: 550; }
 
     .application-actions {
       display: flex;
@@ -59,17 +331,33 @@
       background: #fff5f7;
     }
 
-    .btn-reject:hover {
-      background: #ffe9ee;
-    }
+    .btn-reject:hover { background: #ffe9ee; }
 
-    #applicationMessage {
-      margin-bottom: 18px;
+    .application-empty {
+      grid-column: 1 / -1;
+      padding: 35px 20px;
+      border: 1px dashed #dcdff0;
+      border-radius: 15px;
       color: var(--muted);
+      background: #fbfbff;
+      text-align: center;
     }
 
-    #applicationMessage.error {
-      color: #a34561;
+    @media (max-width: 800px) {
+      .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 600px) {
+      .admin-topbar .welcome-text { gap: 10px; }
+      .admin-mark { width: 40px; height: 40px; flex-basis: 40px; }
+      .admin-hero { align-items: flex-start; flex-direction: column; padding: 19px; }
+      .admin-stats { gap: 10px; }
+      .admin-stat { min-height: 88px; gap: 9px; padding: 12px; }
+      .admin-stat-icon { width: 36px; height: 36px; flex-basis: 36px; }
+      .admin-stat strong { font-size: 21px; }
+      .application-toolbar { align-items: stretch; flex-direction: column; }
+      .application-search { width: 100%; }
+      .applications-heading { align-items: flex-start; }
     }
   </style>
 </head>
@@ -81,10 +369,10 @@
           <img src="mediconnect-logo.svg" alt="MediConnect" class="logo-image">
           <span>MediConnect</span>
         </div>
-        <div class="user-info">Administrator portal</div>
+        <div class="user-info">Administration</div>
       </div>
-      <nav class="nav-menu">
-        <a class="nav-item active" href="admin-dashboard.html">
+      <nav class="nav-menu" aria-label="Admin navigation">
+        <a class="nav-item active" href="admin-dashboard.html" aria-current="page">
           <span class="nav-icon">✓</span>
           <span>Doctor verification</span>
         </a>
@@ -95,17 +383,64 @@
       </nav>
     </aside>
 
-    <main class="main-content">
-      <header class="top-bar">
+    <main class="main-content admin-shell">
+      <header class="top-bar admin-topbar">
         <div class="welcome-text">
-          <h1>Doctor Verification</h1>
-          <p>Review and verify doctor registration requests</p>
+          <span class="admin-mark" aria-hidden="true">✦</span>
+          <div>
+            <h1>Admin workspace</h1>
+            <p>Manage applications and doctor access</p>
+          </div>
         </div>
-        <button class="action-btn btn-secondary" id="refreshApplications">Refresh</button>
+        <button class="action-btn btn-secondary" id="refreshApplications" type="button">↻ <span>Refresh</span></button>
       </header>
-      <p class="admin-intro">Only verified doctors can sign in to the doctor portal.</p>
-      <p id="applicationMessage" role="status">Loading doctor applications…</p>
-      <div class="dashboard-grid" id="doctorApplications"></div>
+
+      <section class="admin-hero" aria-label="Verification overview">
+        <div class="admin-hero-copy">
+          <h2>Doctor verification</h2>
+          <p>Review credentials before granting doctors access to MediConnect.</p>
+        </div>
+        <span class="admin-hero-badge">Secure admin review</span>
+      </section>
+
+      <section class="dashboard-grid admin-stats" aria-label="Doctor application totals">
+        <article class="admin-stat">
+          <span class="admin-stat-icon" aria-hidden="true">▤</span>
+          <div><strong id="totalCount">—</strong><span>Total applications</span></div>
+        </article>
+        <article class="admin-stat pending">
+          <span class="admin-stat-icon" aria-hidden="true">◷</span>
+          <div><strong id="pendingCount">—</strong><span>Awaiting review</span></div>
+        </article>
+        <article class="admin-stat approved">
+          <span class="admin-stat-icon" aria-hidden="true">✓</span>
+          <div><strong id="approvedCount">—</strong><span>Verified doctors</span></div>
+        </article>
+        <article class="admin-stat rejected">
+          <span class="admin-stat-icon" aria-hidden="true">×</span>
+          <div><strong id="rejectedCount">—</strong><span>Not approved</span></div>
+        </article>
+      </section>
+
+      <section class="applications-panel" aria-labelledby="applicationsTitle">
+        <div class="applications-heading">
+          <div>
+            <h2 id="applicationsTitle">Doctor applications</h2>
+            <p>Check contact and license information, then record a decision.</p>
+          </div>
+        </div>
+        <div class="application-toolbar">
+          <div class="status-filters" role="group" aria-label="Filter applications by status">
+            <button type="button" class="status-filter active" data-status="pending" aria-pressed="true">Pending</button>
+            <button type="button" class="status-filter" data-status="approved" aria-pressed="false">Approved</button>
+            <button type="button" class="status-filter" data-status="rejected" aria-pressed="false">Rejected</button>
+            <button type="button" class="status-filter" data-status="all" aria-pressed="false">All</button>
+          </div>
+          <input class="application-search" id="applicationSearch" type="search" placeholder="Search name, email or specialty" aria-label="Search doctor applications">
+        </div>
+        <p id="applicationMessage" role="status" aria-live="polite">Loading doctor applications…</p>
+        <div class="dashboard-grid application-list" id="doctorApplications"></div>
+      </section>
     </main>
   </div>
 

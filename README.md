@@ -63,7 +63,7 @@ Doctor registrations remain pending until an administrator approves them. To cre
 
 1. In Supabase **Authentication → Users**, create or invite the administrator's Auth user if it does not exist yet. Public MediConnect registration cannot grant administrator access.
 2. Add the administrator's exact Auth email to `ADMIN_EMAILS` in `backend/.env` (for example, `ADMIN_EMAILS=admin@example.com`). Multiple addresses may be comma-separated. This server-side allowlist is the only way to grant the administrator role; it is not available in public registration.
-3. Restart the backend and sign in with that Supabase account. Open `http://localhost:4000/admin-dashboard.html` to review pending doctors. Approving a doctor changes their status to `approved`; that doctor can then sign in to the doctor portal. Rejected doctors remain blocked.
+3. Restart the backend and sign in with that Supabase account, selecting **Admin** as the sign-in role. Open `http://localhost:4000/admin-dashboard.html` to review, search, and filter doctor applications. Approving a doctor changes their status to `approved`; that doctor can then sign in to the doctor portal. Rejected doctors remain blocked. Patient and doctor roles are selected during registration; admin is an existing, allowlisted Auth account and cannot be self-registered.
 
 If your Supabase database was already initialized before this patient signup flow was added, run these statements once in the Supabase SQL Editor to allow the initial Google patient profile to be created:
 

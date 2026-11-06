@@ -759,6 +759,14 @@
       font-size: 14px;
     }
 
+    .auth-card .role-help {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
     .auth-card .form-group input,
     .auth-card .form-group select {
       border: 1.5px solid #dfe3f4;

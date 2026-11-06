@@ -1,7 +1,10 @@
 (function() {
   const config = window.__SUPABASE_CONFIG__;
-  if (!config || !window.supabase?.createClient) {
-    throw new Error('Supabase browser configuration could not be loaded.');
+  if (!config) {
+    throw new Error('Supabase configuration is unavailable. Open MediConnect through the backend at http://localhost:4000.');
+  }
+  if (typeof window.supabase?.createClient !== 'function') {
+    throw new Error('Supabase browser SDK did not load. Open MediConnect through the backend at http://localhost:4000, not VS Code Live Server.');
   }
 
   const client = window.supabase.createClient(config.url, config.anonKey, {
@@ -12,6 +15,9 @@
       flowType: 'pkce'
     }
   });
+  if (!client?.auth) {
+    throw new Error('Supabase authentication did not initialize. Check the browser SDK and backend configuration.');
+  }
   window.mcSupabase = client;
 
   window.mcAuthReady = new Promise((resolve) => {

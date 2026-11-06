@@ -7,18 +7,45 @@ const router = Router();
 router.use(requireAdmin);
 
 router.get('/doctors', async (req, res) => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('id, name, email, phone, specialization, license_number, created_at')
-    .eq('role', 'doctor')
-    .eq('approval_status', 'pending')
-    .order('created_at', { ascending: true });
+  const status = req.query.status || 'pending';
+  if (!['all', 'pending', 'approved', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be all, pending, approved, or rejected' });
+  }
 
+  let query = supabase
+    .from('users')
+    .select('id, name, email, phone, specialization, license_number, created_at, approval_status')
+    .eq('role', 'doctor')
+    .order('created_at', { ascending: false });
+  if (status !== 'all') query = query.eq('approval_status', status);
+
+  const { data, error } = await query;
   if (error) {
-    console.error('Pending doctor lookup failed:', error);
-    return res.status(500).json({ error: 'Could not load pending doctor applications' });
+    console.error('Doctor application lookup failed:', error);
+    return res.status(500).json({ error: 'Could not load doctor applications' });
   }
   res.json(data || []);
+});
+
+router.get('/summary', async (req, res) => {
+  const statuses = ['pending', 'approved', 'rejected'];
+  const results = await Promise.all(statuses.map(status =>
+    supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'doctor')
+      .eq('approval_status', status)
+  ));
+
+  const failedResult = results.find(result => result.error);
+  if (failedResult) {
+    console.error('Doctor application summary failed:', failedResult.error);
+    return res.status(500).json({ error: 'Could not load doctor application summary' });
+  }
+
+  const summary = Object.fromEntries(statuses.map((status, index) => [status, results[index].count || 0]));
+  summary.total = summary.pending + summary.approved + summary.rejected;
+  res.json(summary);
 });
 
 router.patch('/doctors/:id', async (req, res) => {

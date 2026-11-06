@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const client = window.mcSupabase;
   const registrationForm = document.getElementById('registrationForm');
   const loginForm = document.getElementById('loginForm');
+  const loginRole = document.getElementById('loginRole');
   const doctorFields = document.getElementById('doctorFields');
   const passwordGroup = document.getElementById('passwordGroup');
   const passwordInput = document.getElementById('password');
@@ -111,6 +112,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     setTimeout(() => { window.location.href = target; }, 700);
   }
 
+  function continueToAccount(profile, expectedRole = '') {
+    const role = expectedRole || sessionStorage.getItem('mc_expected_role') || '';
+    sessionStorage.removeItem('mc_expected_role');
+    sessionStorage.removeItem('mc_pending_profile');
+    if (role && profile.role !== role) {
+      showMessage(`This account is registered as ${profile.role}. Choose ${profile.role} to sign in.`, true);
+      return;
+    }
+    goToAccount(profile);
+  }
+
   function enableProfileCompletion(user, profile = {}) {
     completingProfile = true;
     switchToRegister();
@@ -144,14 +156,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       user.identities?.some(identity => identity.provider === 'google');
   }
 
-  async function handleSession(session) {
+  async function handleSession(session, expectedRole = '') {
     if (!session?.access_token || completingProfile) return;
     sessionStorage.setItem('mc_token', session.access_token);
 
     const { response, data } = await requestProfile(session.access_token);
     if (response.ok) {
-      sessionStorage.removeItem('mc_pending_profile');
-      goToAccount(data);
+      continueToAccount(data, expectedRole);
       return;
     }
     if (data.code !== 'PROFILE_REQUIRED') {
@@ -169,8 +180,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (profile.role === 'patient' && isGoogleUser(session.user)) {
       const saved = await requestProfile(session.access_token, 'POST', { role: 'patient' });
       if (saved.response.ok) {
-        sessionStorage.removeItem('mc_pending_profile');
-        goToAccount(saved.data);
+        continueToAccount(saved.data, expectedRole);
         return;
       }
       showMessage(saved.data.error || 'Could not create your patient account. Please try again.', true);
@@ -183,8 +193,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (profileIsComplete(profile)) {
       const saved = await requestProfile(session.access_token, 'POST', profile);
       if (saved.response.ok) {
-        sessionStorage.removeItem('mc_pending_profile');
-        goToAccount(saved.data);
+        continueToAccount(saved.data, expectedRole);
         return;
       }
       showMessage(saved.data.error || 'Could not save your profile. Please try again.', true);
@@ -220,9 +229,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     goToAccount(saved.data);
   }
 
-  async function startGoogleSignIn(profile) {
+  async function startGoogleSignIn(profile, expectedRole = '') {
     if (profile) sessionStorage.setItem('mc_pending_profile', JSON.stringify(profile));
     else sessionStorage.removeItem('mc_pending_profile');
+    if (expectedRole) sessionStorage.setItem('mc_expected_role', expectedRole);
+    else sessionStorage.removeItem('mc_expected_role');
 
     const redirectTo = `${window.location.origin}${window.location.pathname}`;
     const { error } = await client.auth.signInWithOAuth({
@@ -231,6 +242,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
     if (error) {
       sessionStorage.removeItem('mc_pending_profile');
+      sessionStorage.removeItem('mc_expected_role');
       throw error;
     }
   }
@@ -301,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         password: document.getElementById('loginPassword').value
       });
       if (error) throw error;
-      await handleSession(data.session);
+      await handleSession(data.session, loginRole.value);
     } catch (error) {
       showMessage(error.message || 'Login failed. Please try again.', true);
     } finally {
@@ -323,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   document.getElementById('loginGoogleBtn').addEventListener('click', async function() {
     try {
-      await startGoogleSignIn();
+      await startGoogleSignIn(null, loginRole.value);
     } catch (error) {
       showMessage(error.message || 'Google sign-in could not be started.', true);
     }
